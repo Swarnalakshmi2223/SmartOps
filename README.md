@@ -1048,9 +1048,6 @@ Expected response:
   Reports                        Planned
   Analytics                      Planned
   Audit Logs                     Planned
-  AI Classification              Planned
-  AI Priority Prediction         Planned
-  AI Department Recommendation   Planned
   Duplicate Detection            Planned
   Frontend                       Planned / In Progress
   Testing                        Ongoing
