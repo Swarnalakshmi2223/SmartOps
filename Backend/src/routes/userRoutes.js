@@ -6,7 +6,12 @@ const {
     updateUser,
     updateUserRole,
     updateUserStatus,
-    deleteUser
+    deleteUser,
+    getAllStaff,
+    getStaffById,
+    createStaff,
+    updateStaff,
+    updateStaffStatus
 } = require("../controllers/userController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -17,6 +22,31 @@ const router = express.Router();
 router.get("/", authMiddleware,
                 roleMiddleware("admin"),
                 getAllUsers
+);
+
+router.get("/staff", authMiddleware,
+                    roleMiddleware("admin"),
+                    getAllStaff
+);
+
+router.post("/staff", authMiddleware,
+                    roleMiddleware("admin"),
+                    createStaff
+);
+
+router.get("/staff/:id", authMiddleware,
+                    roleMiddleware("admin"),
+                    getStaffById
+);
+
+router.put("/staff/:id", authMiddleware,
+                    roleMiddleware("admin"),
+                    updateStaff
+);
+
+router.patch("/staff/:id/status", authMiddleware,
+                    roleMiddleware("admin"),
+                    updateStaffStatus
 );
 
 router.get("/:id", authMiddleware,
@@ -42,6 +72,7 @@ router.delete("/:id",authMiddleware,
                      roleMiddleware("admin"),
                      deleteUser
 );
+
 
 
 module.exports = router;

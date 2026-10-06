@@ -9,7 +9,11 @@ const {
     updateRequestStatus,
     getAllRequests,
     assignRequest,
-    getAssignedRequests
+    getAssignedRequests,
+    startRequest,
+    resolveRequest,
+    closeRequest,
+    searchRequests
  } = require("../controllers/requestController");
 
 
@@ -21,6 +25,12 @@ const router = express.Router();
 router.post("/", authMiddleware,
                  roleMiddleware("user"),
                  createRequest);
+
+router.get("/search", authMiddleware, 
+                      roleMiddleware("admin"), 
+                      searchRequests);
+
+
 
 router.get("/my",authMiddleware,
                  roleMiddleware("user"),
@@ -49,6 +59,16 @@ router.patch("/:id/assign", authMiddleware,
                       roleMiddleware("admin"),
                       assignRequest);
 
+router.patch("/:id/start", authMiddleware,
+                        roleMiddleware("staff"),
+                        startRequest);
 
+router.patch("/:id/resolve", authMiddleware,
+                        roleMiddleware("staff"),
+                        resolveRequest);
+
+router.patch("/:id/close", authMiddleware,
+                        roleMiddleware("user"),
+                        closeRequest);
 
 module.exports = router;

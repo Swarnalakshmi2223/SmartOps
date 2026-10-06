@@ -42,19 +42,58 @@ const requestSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true
-       },
+        },
 
-         assignedTo: {
+        assignedTo: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             default: null
-         },
-         
+        },
+
+        aiCategory: {
+            type: String,
+            default: null
+        },
+
+        aiDepartment: {
+            type: String,
+            default: null
+        },
+
+        aiPriority: {
+            type: String,
+            default: null
+        },
+
+        aiCategoryScore: {
+            type: Number,
+            default: 0
+        },
+
+        aiDepartmentScore: {
+            type: Number,
+            default: 0
+        },
+
+        aiPriorityScore: {
+            type: Number,
+            default: 0
+        },
+
+        aiAnalyzedAt: {
+            type: Date,
+            default: null
+        },
+
         attachment: {
             type: String,
             default: null
+        },
+
+        resolution: {
+            type: String,
+            default: null
         }
-         
     },
     {
         timestamps: true

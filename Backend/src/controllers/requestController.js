@@ -1,5 +1,6 @@
 const Request = require("../models/Request");
 const User = require("../models/User");
+const createAuditLog = require("../utils/auditLogger");
 
 const createRequest = async (req, res) => {
     try {
@@ -21,10 +22,21 @@ const createRequest = async (req, res) => {
 
         await newRequest.save();
 
-        res.status(201).json({
-            message: "Request created Successfully",
-            request: newRequest
-       });
+
+        
+    await createAuditLog({
+       user: req.user.id,
+       action: "CREATE_REQUEST",
+       module: "Request Management",
+       description: "User created a new service request",
+       request: newRequest._id
+   });
+
+    res.status(201).json({
+        message: "Request created Successfully",
+        request: newRequest
+    });
+
        
     } catch (error) {
         res.status(500).json({
@@ -32,6 +44,8 @@ const createRequest = async (req, res) => {
             error: error.message
         });
     }
+
+
 };
 
 
@@ -198,9 +212,19 @@ const updateRequestStatus = async (req, res) => {
 
         // ADMIN can update any request
 
+         const oldStatus = request.status;
         request.status = status;
 
         await request.save();
+        
+               
+        await createAuditLog({
+            user: req.user.id,
+            action: "UPDATE_STATUS",
+            module: "Request Management",
+            description: `Request status changed from ${oldStatus} to ${status}`,
+            request: request._id
+          });
 
         res.status(200).json({
             message: "Request status updated successfully",
@@ -224,7 +248,7 @@ const getAllRequests = async (req, res) =>{
         });
 
         res.status(200).json({
-            message: "Requests fectched successfully",
+            message: "Requests fetched successfully",
             count : requests.length,
             requests
         });
@@ -282,6 +306,15 @@ const assignRequest = async (req, res) => {
 
         await request.save();
 
+        await createAuditLog({
+             user: req.user.id,
+             action: "ASSIGN_REQUEST",
+             module: "Request Management",
+             description: `Request assigned to staff member ${staff.name}`,
+            request: request._id
+        });
+
+
         res.status(200).json({
             message: "Request assigned successfully",
             request
@@ -320,6 +353,230 @@ const getAssignedRequests = async (req, res) => {
     }
 };
 
+const startRequest = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const request = await Request.findById(id);
+
+        if (!request) {
+            return res.status(404).json({
+                message: "Request not found"
+            });
+        }
+
+        // Check whether this request is assigned to the logged-in staff
+        if (
+            !request.assignedTo ||
+            request.assignedTo.toString() !== req.user.id
+        ) {
+            return res.status(403).json({
+                message: "This request is not assigned to you"
+            });
+        }
+
+        // Request must be assigned before starting
+        if (request.status !== "Assigned") {
+            return res.status(400).json({
+                message: "Only assigned requests can be started"
+            });
+        }
+
+        request.status = "In Progress";
+
+        await request.save();
+
+        res.status(200).json({
+            message: "Request started successfully",
+            request
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Failed to start request",
+            error: error.message
+        });
+    }
+};
+
+const resolveRequest = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { resolution } = req.body;
+
+        if (!resolution) {
+            return res.status(400).json({
+                message: "Resolution is required"
+            });
+        }
+
+        const request = await Request.findById(id);
+
+        if (!request) {
+            return res.status(404).json({
+                message: "Request not found"
+            });
+        }
+
+        // Only the assigned staff can resolve the request
+        if (
+            !request.assignedTo ||
+            request.assignedTo.toString() !== req.user.id
+        ) {
+            return res.status(403).json({
+                message: "This request is not assigned to you"
+            });
+        }
+
+        // Only an In Progress request can be resolved
+        if (request.status !== "In Progress") {
+            return res.status(400).json({
+                message: "Only In Progress requests can be resolved"
+            });
+        }
+
+        request.resolution = resolution;
+        request.status = "Resolved";
+
+        await request.save();
+
+        res.status(200).json({
+            message: "Request resolved successfully",
+            request
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Failed to resolve request",
+            error: error.message
+        });
+    }
+};
+
+
+const closeRequest = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const request = await Request.findById(id);
+
+        if (!request) {
+            return res.status(404).json({
+                message: "Request not found"
+            });
+        }
+
+        // Only the user who created the request can close it
+        if (request.createdBy.toString() !== req.user.id) {
+            return res.status(403).json({
+                message: "You can only close your own request"
+            });
+        }
+
+        // Only resolved requests can be closed
+        if (request.status !== "Resolved") {
+            return res.status(400).json({
+                message: "Only resolved requests can be closed"
+            });
+        }
+
+        request.status = "Closed";
+
+        await request.save();
+
+        res.status(200).json({
+            message: "Request closed successfully",
+            request
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Failed to close request",
+            error: error.message
+        });
+    }
+};
+
+
+// 11. Search and Filter Requests
+const searchRequests = async (req, res) => {
+    try {
+        const {
+            search,
+            category,
+            priority,
+            status,
+            assignedTo,
+            createdBy
+        } = req.query;
+
+        const filter = {};
+
+        // Search by title or description
+        if (search) {
+            filter.$or = [
+                {
+                    title: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                },
+                {
+                    description: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                }
+            ];
+        }
+
+        // Filter by category
+        if (category) {
+            filter.category = {
+                $regex: category,
+                $options: "i"
+            };
+        }
+
+        // Filter by priority
+        if (priority) {
+            filter.priority = priority;
+        }
+
+        // Filter by status
+        if (status) {
+            filter.status = status;
+        }
+
+        // Filter by assigned staff
+        if (assignedTo) {
+            filter.assignedTo = assignedTo;
+        }
+
+        // Filter by request creator
+        if (createdBy) {
+            filter.createdBy = createdBy;
+        }
+
+        const requests = await Request.find(filter)
+            .populate("createdBy", "name email role")
+            .populate("assignedTo", "name email role")
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            message: "Requests fetched successfully",
+            count: requests.length,
+            requests
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Failed to search requests",
+            error: error.message
+        });
+    }
+};
+
 
 module.exports = {
     createRequest,
@@ -329,5 +586,9 @@ module.exports = {
     updateRequestStatus,
     getAllRequests,
     assignRequest,
-    getAssignedRequests
+    getAssignedRequests,
+    startRequest,
+    resolveRequest,
+    closeRequest,
+    searchRequests
 };

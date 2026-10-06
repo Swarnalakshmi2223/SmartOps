@@ -1,439 +1,323 @@
-# SmartOps API Endpoints
 
-## Base URL
+## 1. Authentication — 2 APIs
 
-http://localhost:5000
-
----
-
-# MODULE 1 — AUTHENTICATION & AUTHORIZATION
-
-## 1. Register User
-
-Method:
-POST
-
-URL:
-http://localhost:5000/api/auth/register
-
-Authorization:
-None
-
-Body:
-{
-    "name": "Demo User",
-    "email": "demouser@gmail.com",
-    "password": "Password123"
-}
+| # | Method | Endpoint             | Role   |
+| - | ------ | -------------------- | ------ |
+| 1 | POST   | `/api/auth/register` | Public |
+| 2 | POST   | `/api/auth/login`    | Public |
 
 ---
 
-## 2. Login
+## 2. User Management — 7 APIs
 
-Method:
-POST
-
-URL:
-http://localhost:5000/api/auth/login
-
-Authorization:
-None
-
-Body:
-{
-    "email": "testuser@gmail.com",
-    "password": "Password123"
-}
+| # | Method | Endpoint                | Role  |
+| - | ------ | ----------------------- | ----- |
+| 3 | GET    | `/api/users`            | Admin |
+| 4 | GET    | `/api/users/:id`        | Admin |
+| 5 | PUT    | `/api/users/:id`        | User  |
+| 6 | PUT    | `/api/users/:id/role`   | Admin |
+| 7 | PATCH  | `/api/users/:id/status` | Admin |
+| 8 | DELETE | `/api/users/:id`        | Admin |
+| 9 | GET    | `/api/users/staff`      | Admin |
 
 ---
 
-## 3. Protected Test
+## 3. Request Management — 11 APIs
 
-Method:
-GET
+| #  | Method | Endpoint                    | Role             |
+| -- | ------ | --------------------------- | ---------------- |
+| 10 | POST   | `/api/requests`             | User             |
+| 11 | GET    | `/api/requests/my`          | User             |
+| 12 | GET    | `/api/requests/:id`         | User             |
+| 13 | PUT    | `/api/requests/:id`         | User             |
+| 14 | GET    | `/api/requests/assigned`    | Staff            |
+| 15 | GET    | `/api/requests`             | Admin            |
+| 16 | PATCH  | `/api/requests/:id/assign`  | Admin            |
+| 17 | PATCH  | `/api/requests/:id/status`  | User/Staff/Admin |
+| 18 | PATCH  | `/api/requests/:id/start`   | Staff            |
+| 19 | PATCH  | `/api/requests/:id/resolve` | Staff            |
+| 20 | PATCH  | `/api/requests/:id/close`   | User             |
 
-URL:
-http://localhost:5000/api/test/protected
+### Search & Filter
 
-Authorization:
-Bearer Token
+Your search API is:
 
-Token:
-USER_TOKEN
+| #  | Method | Endpoint               | Role  |
+| -- | ------ | ---------------------- | ----- |
+| 21 | GET    | `/api/requests/search` | Admin |
 
----
+Examples:
 
-## 4. User Role Test
+```text
+/api/requests/search?search=email
+```
 
-Method:
-GET
+```text
+/api/requests/search?status=Pending
+```
 
-URL:
-http://localhost:5000/api/test/user
+```text
+/api/requests/search?priority=High
+```
 
-Authorization:
-Bearer Token
+```text
+/api/requests/search?category=Maintenance
+```
 
-Token:
-USER_TOKEN
+You can also combine them:
 
----
-
-## 5. Staff Role Test
-
-Method:
-GET
-
-URL:
-http://localhost:5000/api/test/staff
-
-Authorization:
-Bearer Token
-
-Token:
-STAFF_TOKEN
-
----
-
-## 6. Admin Role Test
-
-Method:
-GET
-
-URL:
-http://localhost:5000/api/test/admin
-
-Authorization:
-Bearer Token
-
-Token:
-ADMIN_TOKEN
+```text
+/api/requests/search?status=Pending&priority=High
+```
 
 ---
 
-# MODULE 2 — USER MANAGEMENT
+# 4. Task Management — 5 APIs
 
-## 1. Get All Users
-
-Method:
-GET
-
-URL:
-http://localhost:5000/api/users
-
-Authorization:
-Bearer ADMIN_TOKEN
+| #  | Method | Endpoint                | Role        |
+| -- | ------ | ----------------------- | ----------- |
+| 22 | POST   | `/api/tasks`            | Staff/Admin |
+| 23 | GET    | `/api/tasks`            | Staff/Admin |
+| 24 | GET    | `/api/tasks/:id`        | Staff/Admin |
+| 25 | PUT    | `/api/tasks/:id`        | Staff/Admin |
+| 26 | PATCH  | `/api/tasks/:id/status` | Staff/Admin |
 
 ---
 
-## 2. Get User By ID
+# 5. Notifications — 6 APIs
 
-Method:
-GET
+| #  | Method | Endpoint                      |
+| -- | ------ | ----------------------------- |
+| 27 | POST   | `/api/notifications`          |
+| 28 | GET    | `/api/notifications/my`       |
+| 29 | GET    | `/api/notifications/unread`   |
+| 30 | PATCH  | `/api/notifications/:id/read` |
+| 31 | PATCH  | `/api/notifications/read-all` |
+| 32 | DELETE | `/api/notifications/:id`      |
 
-URL:
-http://localhost:5000/api/users/USER_ID
+You already confirmed these are working. ✅
 
-Authorization:
-Bearer ADMIN_TOKEN
+---
+
+# 6. Feedback — 6 APIs
+
+| #  | Method | Endpoint                           |
+| -- | ------ | ---------------------------------- |
+| 33 | POST   | `/api/feedback`                    |
+| 34 | GET    | `/api/feedback/my`                 |
+| 35 | GET    | `/api/feedback/request/:requestId` |
+| 36 | GET    | `/api/feedback`                    |
+| 37 | PUT    | `/api/feedback/:id`                |
+| 38 | DELETE | `/api/feedback/:id`                |
+
+Feedback is also confirmed working. ✅
+
+---
+
+# 7. Reports — 4 APIs
+
+| #  | Method | Endpoint                      |
+| -- | ------ | ----------------------------- |
+| 39 | GET    | `/api/reports/requests`       |
+| 40 | GET    | `/api/reports/categories`     |
+| 41 | GET    | `/api/reports/staff-workload` |
+| 42 | GET    | `/api/reports/requests/date`  |
 
 Example:
 
-http://localhost:5000/api/users/6abbd0957480274cd5fe2d5e
+```text
+GET /api/reports/requests/date?from=2026-10-01&to=2026-10-05
+```
 
 ---
 
-## 3. Update User
+# 8. Analytics — 3 APIs
 
-Method:
-PUT
+| #  | Method | Endpoint                           |
+| -- | ------ | ---------------------------------- |
+| 43 | GET    | `/api/analytics/dashboard`         |
+| 44 | GET    | `/api/analytics/categories`        |
+| 45 | GET    | `/api/analytics/staff-performance` |
 
-URL:
-http://localhost:5000/api/users/USER_ID
+These are Admin APIs. ✅
 
-Authorization:
-Bearer ADMIN_TOKEN
+---
 
-Body:
+# 9. Audit Logs — 1 API
+
+| #  | Method | Endpoint          | Role  |
+| -- | ------ | ----------------- | ----- |
+| 46 | GET    | `/api/audit-logs` | Admin |
+
+This returns activities such as:
+
+```text
+CREATE_REQUEST
+ASSIGN_REQUEST
+UPDATE_STATUS
+UPDATE_USER_ROLE
+DEACTIVATE_USER
+ACTIVATE_USER
+DELETE_USER
+```
+
+✅
+
+---
+
+# 10. Department Management
+
+Your Department APIs are:
+
+```text
+POST   /api/departments
+GET    /api/departments
+GET    /api/departments/:id
+PUT    /api/departments/:id
+PATCH  /api/departments/:id/status
+```
+
+That's **5 APIs**.
+
+---
+
+# 11. Category Management
+
+Your Category APIs are:
+
+```text
+POST   /api/categories
+GET    /api/categories
+GET    /api/categories/:id
+PUT    /api/categories/:id
+PATCH  /api/categories/:id/status
+```
+
+That's another **5 APIs**.
+
+---
+
+# 12. AI Assistance
+
+Your AI APIs are:
+
+```text
+POST   /api/ai/analyze
+POST   /api/ai/duplicates
+POST   /api/ai/analyze/:requestId
+PATCH  /api/ai/review/:requestId
+```
+
+That's **4 APIs**.
+
+The review API supports:
+
+```json
 {
-    "name": "Updated User",
-    "email": "updateduser@gmail.com"
+    "action": "accept"
 }
+```
 
----
+and:
 
-## 4. Deactivate User
-
-Method:
-PATCH
-
-URL:
-http://localhost:5000/api/users/USER_ID/status
-
-Authorization:
-Bearer ADMIN_TOKEN
-
-Body:
+```json
 {
-    "isActive": false
+    "action": "modify",
+    "category": "Other",
+    "priority": "Medium"
 }
+```
+
+Both are confirmed working. ✅
 
 ---
 
-## 5. Activate User
-
-Method:
-PATCH
-
-URL:
-http://localhost:5000/api/users/USER_ID/status
-
-Authorization:
-Bearer ADMIN_TOKEN
-
-Body:
-{
-    "isActive": true
-}
-
----
-
-## 6. Delete User
-
-Method:
-DELETE
-
-URL:
-http://localhost:5000/api/users/USER_ID
-
-Authorization:
-Bearer ADMIN_TOKEN
-
----
-
-# MODULE 3 — REQUEST MANAGEMENT
-
-## 1. Create Request
-
-Method:
-POST
-
-URL:
-http://localhost:5000/api/requests
-
-Authorization:
-Bearer USER_TOKEN
-
-Body:
-{
-    "title": "Unable to access company email",
-    "description": "I am unable to login to my company email account.",
-    "category": "IT Support",
-    "priority": "High"
-}
-
----
-
-## 2. Get My Requests
-
-Method:
-GET
-
-URL:
-http://localhost:5000/api/requests/my
-
-Authorization:
-Bearer USER_TOKEN
-
----
-
-## 3. Get Request By ID
-
-Method:
-GET
-
-URL:
-http://localhost:5000/api/requests/REQUEST_ID
-
-Authorization:
-Bearer USER_TOKEN
-
-Example:
-
-http://localhost:5000/api/requests/6abd2df66b3f408d79352366
-
----
-
-## 4. Update Request
-
-Method:
-PUT
-
-URL:
-http://localhost:5000/api/requests/REQUEST_ID
-
-Authorization:
-Bearer USER_TOKEN
-
-Body:
-{
-    "title": "Unable to access company email - Updated",
-    "description": "I am still unable to login to my company email account.",
-    "category": "IT Support",
-    "priority": "High"
-}
-
----
-
-## 5. Get All Requests
-
-Method:
-GET
-
-URL:
-http://localhost:5000/api/requests
-
-Authorization:
-Bearer ADMIN_TOKEN
-
----
-
-## 6. Assign Request To Staff
-
-Method:
-PATCH
-
-URL:
-http://localhost:5000/api/requests/REQUEST_ID/assign
-
-Authorization:
-Bearer ADMIN_TOKEN
-
-Body:
-{
-    "staffId": "6abc00a7acf3b11329895dea"
-}
-
-Example:
-
-http://localhost:5000/api/requests/6abd2df66b3f408d79352366/assign
-
----
-
-## 7. Get Assigned Requests
-
-Method:
-GET
-
-URL:
-http://localhost:5000/api/requests/assigned
-
-Authorization:
-Bearer STAFF_TOKEN
-
----
-
-# TEST ACCOUNTS
-
-## User
-
-Email:
-testuser@gmail.com
-
-Password:
-Password123
-
-Role:
-user
-
----
-
-## Staff
-
-Email:
-teststaff@gmail.com
-
-Password:
-Staff123
-
-Role:
-staff
-
-Staff ID:
-6abc00a7acf3b11329895dea
-
----
-
-## Admin
-
-Email:
-testadmin@gmail.com
-
-Password:
-Admin123
-
-Role:
-admin
-
----
-
-# REQUEST TEST DATA
-
-Request ID:
-
-6abd2df66b3f408d79352366
-
-Staff ID:
-
-6abc00a7acf3b11329895dea
-
----
-
-# REQUEST STATUS
-
-Pending
-Assigned
-In Progress
-Resolved
-Closed
-
----
-
-# AUTHORIZATION FORMAT
-
-For protected APIs:
-
-Authorization:
-Bearer YOUR_JWT_TOKEN
-
-Example:
-
-Authorization:
-Bearer eyJhbGciOiJIUzI1NiIs...
-
----
-
-# QUICK API LIST
-
-## Authentication
-
-POST    /api/auth/register
-POST    /api/auth/login
-
-## User Management
-
-GET     /api/users
-GET     /api/users/:id
-PUT     /api/users/:id
-PATCH   /api/users/:id/status
-DELETE  /api/users/:id
-
-## Request Management
-
-POST    /api/requests
-GET     /api/requests/my
-GET     /api/requests/:id
-PUT     /api/requests/:id
-GET     /api/requests
-PATCH   /api/requests/:id/assign
-GET     /api/requests/assigned
+# Important API Count Correction
+
+Based on the routes you've shown throughout the project, we should **not claim 46 as the final total yet**.
+
+We have:
+
+```text
+Authentication          2
+User Management         7
+Request Management     12
+Task Management         5
+Notifications           6
+Feedback                6
+Reports                 4
+Analytics               3
+Audit                   1
+Departments             5
+Categories              5
+AI                      4
+──────────────────────────
+TOTAL                  60
+```
+
+So your current known backend is approximately **60 APIs/endpoints**.
+
+The earlier **46** count excluded several modules that you have since implemented.
+
+### Your project status now
+
+```text
+SMARTOPS BACKEND
+══════════════════════════════════
+
+Authentication          ✅
+User Management         ✅
+Staff Management        ✅
+Request Management     ✅
+Task Management         ✅
+Search & Filter         ✅
+Assignment              ✅
+Resolution              ✅
+AI Assistance           ✅
+Notifications           ✅
+Feedback                ✅
+Reports                 ✅
+Analytics               ✅
+Departments             ✅
+Categories              ✅
+Audit Logs              ✅
+
+══════════════════════════════════
+Backend Development     ✅ COMPLETE
+══════════════════════════════════
+```
+
+## Next process
+
+
+
+
+-------------------------------------------------------------------------
+Y
+
+------------------------------
+src/
+│
+├── assets/
+│
+├── components/
+│
+├── context/
+│
+├── layouts/
+│
+├── pages/
+│   ├── auth/
+│   ├── user/
+│   ├── staff/
+│   └── admin/
+│
+├── routes/
+│
+├── services/
+│
+├── utils/
+│
+├── App.jsx
+├── main.jsx
+└── index.css
