@@ -1,0 +1,238 @@
+.admin-departments {
+    width: 100%;
+}
+
+.admin-departments-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 22px;
+}
+
+.admin-departments-header h2 {
+    margin: 0;
+    color: #263238;
+    font-size: 22px;
+    font-weight: 650;
+}
+
+.admin-departments-header p {
+    margin: 6px 0 0;
+    color: #7a858d;
+    font-size: 13px;
+}
+
+.admin-departments-add-btn {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 7px;
+    background: #344f62;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.admin-departments-add-btn:hover {
+    background: #293f50;
+}
+
+.admin-departments-error {
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    background: #faf5f4;
+    border: 1px solid #ead9d6;
+    border-radius: 8px;
+    color: #8a5b53;
+    font-size: 13px;
+}
+
+.admin-departments-form-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(38, 55, 70, 0.35);
+}
+
+.admin-departments-form {
+    background: #FFFFFF;
+    border-radius: 11px;
+    padding: 24px;
+    width: 400px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-departments-form h3 {
+    margin: 0 0 16px;
+    color: #344054;
+    font-size: 16px;
+}
+
+.admin-departments-form label {
+    display: block;
+    margin-bottom: 7px;
+    color: #53616b;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.admin-departments-form input,
+.admin-departments-form textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 12px;
+    margin-bottom: 16px;
+    border: 1px solid #d9e0e4;
+    border-radius: 7px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #344054;
+    outline: none;
+}
+
+.admin-departments-form input {
+    height: 42px;
+}
+
+.admin-departments-form textarea {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    resize: none;
+}
+
+.admin-departments-form input:focus,
+.admin-departments-form textarea:focus {
+    border-color: #91a3ae;
+}
+
+.admin-departments-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.admin-departments-form-actions button {
+    height: 38px;
+    padding: 0 16px;
+    border-radius: 7px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #d9e0e4;
+    background: #ffffff;
+    color: #63717a;
+}
+
+.admin-departments-form-actions button.primary {
+    border: none;
+    background: #344f62;
+    color: #ffffff;
+}
+
+.admin-departments-form-actions button.primary:hover {
+    background: #293f50;
+}
+
+.admin-departments-message {
+    padding: 30px;
+    background: #ffffff;
+    border: 1px solid #e1e6ea;
+    border-radius: 10px;
+    text-align: center;
+    color: #6e7b84;
+    font-size: 13px;
+}
+
+.admin-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    background: #ffffff;
+    border: 1px solid #e1e6ea;
+    border-radius: 10px;
+}
+
+.admin-departments-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.admin-departments-table th {
+    padding: 13px 18px;
+    background: #f8f9fa;
+    color: #74808a;
+    font-size: 10px;
+    font-weight: 700;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.admin-departments-table td {
+    padding: 14px 18px;
+    color: #53616b;
+    border-top: 1px solid #edf0f2;
+}
+
+.admin-departments-table tbody tr:hover {
+    background: #fafbfc;
+}
+
+.admin-departments-table strong {
+    color: #344054;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.status-active,
+.status-inactive {
+    display: inline-flex;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.status-active {
+    background: #e8f0ed;
+    color: #4f6f63;
+}
+
+.status-inactive {
+    background: #f1e9e7;
+    color: #8a5b53;
+}
+
+.admin-departments-actions {
+    display: flex;
+    gap: 7px;
+}
+
+.admin-departments-actions button {
+    width: 31px;
+    height: 31px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d9e0e4;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #536675;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.admin-departments-actions button:hover {
+    background: #f3f6f7;
+}

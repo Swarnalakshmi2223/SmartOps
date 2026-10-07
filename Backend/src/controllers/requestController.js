@@ -2,6 +2,10 @@ const Request = require("../models/Request");
 const User = require("../models/User");
 const createAuditLog = require("../utils/auditLogger");
 
+const {
+    createAutomaticNotification
+} = require("../services/notificationService");
+
 const createRequest = async (req, res) => {
     try {
         const { title, description, category, priority } = req.body;
@@ -269,7 +273,7 @@ const assignRequest = async (req, res) => {
 
         if (!staffId) {
             return res.status(400).json({
-                message: "Staff ID is required"
+                message: "staffId is required"
             });
         }
 
@@ -281,39 +285,30 @@ const assignRequest = async (req, res) => {
             });
         }
 
-        const staff = await User.findById(staffId);
+        const staff = await User.findOne({
+            _id: staffId,
+            role: "staff",
+            isActive: true
+        });
 
         if (!staff) {
             return res.status(404).json({
-                message: "Staff member not found"
+                message: "Active staff member not found"
             });
         }
 
-        if (staff.role !== "staff") {
-            return res.status(400).json({
-                message: "Selected user is not a staff member"
-            });
-        }
-
-        if (!staff.isActive) {
-            return res.status(400).json({
-                message: "Cannot assign request to an inactive staff member"
-            });
-        }
-
-        request.assignedTo = staff._id;
+        request.assignedTo = staffId;
         request.status = "Assigned";
 
         await request.save();
 
-        await createAuditLog({
-             user: req.user.id,
-             action: "ASSIGN_REQUEST",
-             module: "Request Management",
-             description: `Request assigned to staff member ${staff.name}`,
-            request: request._id
+        await createAutomaticNotification({
+            userId: staffId,
+            title: "New Request Assigned",
+            message: `A new request "${request.title}" has been assigned to you.`,
+            type: "assignment",
+            relatedRequest: request._id
         });
-
 
         res.status(200).json({
             message: "Request assigned successfully",
@@ -321,13 +316,14 @@ const assignRequest = async (req, res) => {
         });
 
     } catch (error) {
+        console.error("Assign request error:", error);
+
         res.status(500).json({
             message: "Failed to assign request",
             error: error.message
         });
     }
 };
-
 
 const getAssignedRequests = async (req, res) => {
     try {
@@ -365,7 +361,6 @@ const startRequest = async (req, res) => {
             });
         }
 
-        // Check whether this request is assigned to the logged-in staff
         if (
             !request.assignedTo ||
             request.assignedTo.toString() !== req.user.id
@@ -375,7 +370,6 @@ const startRequest = async (req, res) => {
             });
         }
 
-        // Request must be assigned before starting
         if (request.status !== "Assigned") {
             return res.status(400).json({
                 message: "Only assigned requests can be started"
@@ -386,12 +380,22 @@ const startRequest = async (req, res) => {
 
         await request.save();
 
+        await createAutomaticNotification({
+            userId: request.createdBy,
+            title: "Request In Progress",
+            message: `Your request "${request.title}" is now being handled by the support team.`,
+            type: "status",
+            relatedRequest: request._id
+        });
+
         res.status(200).json({
             message: "Request started successfully",
             request
         });
 
     } catch (error) {
+        console.error("Start request error:", error);
+
         res.status(500).json({
             message: "Failed to start request",
             error: error.message
@@ -418,7 +422,6 @@ const resolveRequest = async (req, res) => {
             });
         }
 
-        // Only the assigned staff can resolve the request
         if (
             !request.assignedTo ||
             request.assignedTo.toString() !== req.user.id
@@ -428,7 +431,6 @@ const resolveRequest = async (req, res) => {
             });
         }
 
-        // Only an In Progress request can be resolved
         if (request.status !== "In Progress") {
             return res.status(400).json({
                 message: "Only In Progress requests can be resolved"
@@ -440,19 +442,29 @@ const resolveRequest = async (req, res) => {
 
         await request.save();
 
+        // Notify the user who created the request
+        await createAutomaticNotification({
+            userId: request.createdBy,
+            title: "Request Resolved",
+            message: `Your request "${request.title}" has been resolved by the support team.`,
+            type: "status",
+            relatedRequest: request._id
+        });
+
         res.status(200).json({
             message: "Request resolved successfully",
             request
         });
 
     } catch (error) {
+        console.error("Resolve request error:", error);
+
         res.status(500).json({
             message: "Failed to resolve request",
             error: error.message
         });
     }
 };
-
 
 const closeRequest = async (req, res) => {
     try {
@@ -484,12 +496,25 @@ const closeRequest = async (req, res) => {
 
         await request.save();
 
+        // Notify assigned staff
+        if (request.assignedTo) {
+            await createAutomaticNotification({
+                userId: request.assignedTo,
+                title: "Request Closed",
+                message: `The request "${request.title}" has been closed by the user.`,
+                type: "status",
+                relatedRequest: request._id
+            });
+        }
+
         res.status(200).json({
             message: "Request closed successfully",
             request
         });
 
     } catch (error) {
+        console.error("Close request error:", error);
+
         res.status(500).json({
             message: "Failed to close request",
             error: error.message

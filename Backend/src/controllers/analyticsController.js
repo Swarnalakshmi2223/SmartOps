@@ -28,8 +28,8 @@ const getDashboardAnalytics = async (req, res) => {
             priority: "High"
         });
 
-        const urgentPriorityRequests = await Request.countDocuments({
-            priority: "Urgent"
+        const criticalPriorityRequests = await Request.countDocuments({
+            priority: "Critical"
         });
 
         // Users
@@ -70,7 +70,7 @@ const getDashboardAnalytics = async (req, res) => {
 
                 priority: {
                     high: highPriorityRequests,
-                    urgent: urgentPriorityRequests
+                    critical: criticalPriorityRequests
                 },
 
                 users: {

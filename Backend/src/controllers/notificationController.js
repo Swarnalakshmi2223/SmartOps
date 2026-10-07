@@ -1,7 +1,7 @@
 const Notification = require("../models/Notification");
 
 
-// 1. Create Notification
+// 1. Create Notification Manually
 const createNotification = async (req, res) => {
     try {
         const {
@@ -50,8 +50,14 @@ const getMyNotifications = async (req, res) => {
         const notifications = await Notification.find({
             userId: req.user.id
         })
-            .populate("relatedRequest", "title status priority")
-            .populate("relatedTask", "title status")
+            .populate(
+                "relatedRequest",
+                "title status priority"
+            )
+            .populate(
+                "relatedTask",
+                "title status"
+            )
             .sort({ createdAt: -1 });
 
         res.status(200).json({
@@ -76,8 +82,14 @@ const getUnreadNotifications = async (req, res) => {
             userId: req.user.id,
             isRead: false
         })
-            .populate("relatedRequest", "title status priority")
-            .populate("relatedTask", "title status")
+            .populate(
+                "relatedRequest",
+                "title status priority"
+            )
+            .populate(
+                "relatedTask",
+                "title status"
+            )
             .sort({ createdAt: -1 });
 
         res.status(200).json({

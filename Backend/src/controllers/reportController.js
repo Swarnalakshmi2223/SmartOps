@@ -1,5 +1,9 @@
 const Request = require("../models/Request");
 
+const {
+    createAutomaticNotification
+} = require("../services/notificationService");
+
 // 1. Get Request Report
 const getRequestReport = async (req, res) => {
     try {

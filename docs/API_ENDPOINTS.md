@@ -289,35 +289,3 @@ Backend Development     ✅ COMPLETE
 
 ## Next process
 
-
-
-
--------------------------------------------------------------------------
-Y
-
-------------------------------
-src/
-│
-├── assets/
-│
-├── components/
-│
-├── context/
-│
-├── layouts/
-│
-├── pages/
-│   ├── auth/
-│   ├── user/
-│   ├── staff/
-│   └── admin/
-│
-├── routes/
-│
-├── services/
-│
-├── utils/
-│
-├── App.jsx
-├── main.jsx
-└── index.css

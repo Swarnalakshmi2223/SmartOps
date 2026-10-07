@@ -1,122 +1,167 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { Navigate, Route, Routes } from "react-router-dom";
+
+import Login from "./pages/auth/Login";
+
+import UserDashboard from "./pages/user/UserDashboard";
+import MyRequests from "./pages/user/MyRequests";
+import CreateRequest from "./pages/user/CreateRequest";
+import RequestDetails from "./pages/user/RequestDetails";
+
+import StaffDashboard from "./pages/staff/StaffDashboard";
+import StaffRequests from "./pages/staff/StaffRequests";
+import StaffTasks from "./pages/staff/StaffTasks";
+
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminRequests from "./pages/admin/AdminRequests";
+import AdminStaff from "./pages/admin/AdminStaff";
+import AdminTasks from "./pages/admin/AdminTasks";
+import AdminDepartments from "./pages/admin/AdminDepartments";
+import AdminCategories from "./pages/admin/AdminCategories";
+import AdminReports from "./pages/admin/AdminReports";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
+
+import Notifications from "./pages/Notifications";
+
+import ProtectedRoute from "./routes/ProtectedRoute";
+import DashboardLayout from "./layouts/DashboardLayout";
+
+import { useAuth } from "./context/AuthContext";
+
+
 
 function App() {
-  const [count, setCount] = useState(0)
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    const { user } = useAuth();
 
-      <div className="ticks"></div>
+    return (
+        <Routes>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+            <Route
+                path="/"
+                element={
+                    user
+                        ? <Navigate to={`/${user.role}`} replace />
+                        : <Navigate to="/login" replace />
+                }
+            />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+            <Route
+                path="/login"
+                element={
+                    user
+                        ? <Navigate to={`/${user.role}`} replace />
+                        : <Login />
+                }
+            />
+
+             <Route
+                    path="/user"
+                    element={
+                        <ProtectedRoute allowedRoles={["user"]}>
+                            <DashboardLayout />
+                        </ProtectedRoute>
+                    }
+                >
+                    <Route
+                        index
+                        element={<UserDashboard />}
+                    />
+
+                     <Route
+                         path="requests"
+                          element={<MyRequests />}
+                     />
+
+                         <Route
+                           path="requests/new"
+                           element={<CreateRequest />}
+                       />
+
+                      <Route
+                           path="requests/:id"
+                           element={<RequestDetails />}
+                      />
+
+                      <Route path="notifications" element={<Notifications />} />
+
+
+                </Route>
+                
+                   <Route
+                    path="/staff"
+                    element={
+                        <ProtectedRoute allowedRoles={["staff"]}>
+                            <DashboardLayout />
+                        </ProtectedRoute>
+                    }
+                   >
+                    <Route
+                        index
+                        element={<StaffDashboard />}
+                    />
+                    <Route
+                        path="requests"
+                        element={<StaffRequests />}
+                    />
+                    <Route
+                        path="tasks"
+                        element={<StaffTasks/>}
+                    />
+
+                 <Route path="notifications" element={<Notifications />} />
+
+                </Route>
+                
+                <Route
+                    path="/admin"
+                    element={
+                        <ProtectedRoute allowedRoles={["admin"]}>
+                            <DashboardLayout />
+                        </ProtectedRoute>
+                    }
+                >
+                    <Route
+                        index
+                        element={<AdminDashboard />}
+                    />
+                    <Route
+                        path="requests"
+                        element={<AdminRequests />}
+                    />
+                    <Route
+                        path="staff"
+                        element={<AdminStaff />}
+                    />
+                    <Route
+                        path="tasks"
+                        element={<AdminTasks/>}
+                    />
+                   
+                   <Route
+                         path="departments"
+                         element={<AdminDepartments />}
+                     />
+
+                     <Route
+                          path="categories"
+                          element={<AdminCategories />}
+                      />
+
+                    <Route
+                        path="reports"
+                        element={<AdminReports />}
+                    />
+
+                    <Route
+                        path="analytics"
+                        element={<AdminAnalytics />}
+                    />
+
+                    <Route path="notifications" element={<Notifications />} />
+                    
+                </Route>
+        </Routes>
+    );
 }
 
-export default App
+export default App;
