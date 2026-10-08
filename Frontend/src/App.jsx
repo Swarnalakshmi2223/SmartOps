@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
 
 import UserDashboard from "./pages/user/UserDashboard";
 import MyRequests from "./pages/user/MyRequests";
@@ -19,8 +20,13 @@ import AdminDepartments from "./pages/admin/AdminDepartments";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
+import AdminFeedback from "./pages/admin/AdminFeedback";
+import AdminAIReview from "./pages/admin/AdminAIReview";
 
 import Notifications from "./pages/Notifications";
+
+import Settings from "./pages/shared/Settings";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
@@ -54,6 +60,15 @@ function App() {
                 }
             />
 
+            <Route
+                path="/register"
+                element={
+                    user
+                        ? <Navigate to={`/${user.role}`} replace />
+                        : <Register />
+                }
+            />
+
              <Route
                     path="/user"
                     element={
@@ -83,6 +98,8 @@ function App() {
                       />
 
                       <Route path="notifications" element={<Notifications />} />
+                      <Route path="settings" element={<Settings />} />
+
 
 
                 </Route>
@@ -104,11 +121,16 @@ function App() {
                         element={<StaffRequests />}
                     />
                     <Route
+                        path="requests/:id"
+                        element={<RequestDetails />}
+                    />
+                    <Route
                         path="tasks"
                         element={<StaffTasks/>}
                     />
 
                  <Route path="notifications" element={<Notifications />} />
+                 <Route path="settings" element={<Settings />} />
 
                 </Route>
                 
@@ -127,6 +149,14 @@ function App() {
                     <Route
                         path="requests"
                         element={<AdminRequests />}
+                    />
+                    <Route
+                        path="requests/:id"
+                        element={<RequestDetails />}
+                    />
+                    <Route
+                        path="ai-review/:requestId"
+                        element={<AdminAIReview />}
                     />
                     <Route
                         path="staff"
@@ -157,9 +187,23 @@ function App() {
                         element={<AdminAnalytics />}
                     />
 
+                    <Route
+                        path="audit-logs"
+                        element={<AdminAuditLogs />}
+                    />
+
+                    <Route
+                        path="feedback"
+                        element={<AdminFeedback />}
+                    />
+
                     <Route path="notifications" element={<Notifications />} />
+                    <Route path="settings" element={<Settings />} />
                     
                 </Route>
+
+
+
         </Routes>
     );
 }

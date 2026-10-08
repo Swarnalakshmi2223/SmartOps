@@ -88,6 +88,31 @@ const getCategoryById = async (req, res) => {
 };
 
 
+const getActiveCategories = async (req, res) => {
+    try {
+        const categories = await Category.find({
+            // Treat legacy documents without the later field as active.
+            isActive: { $ne: false }
+        })
+            .select("name description isActive")
+            .sort({ name: 1 });
+
+        res.status(200).json({
+            message: "Active categories fetched successfully",
+            categories
+        });
+
+    } catch (error) {
+        console.error("Get active categories error:", error);
+
+        res.status(500).json({
+            message: "Failed to fetch active categories",
+            error: error.message
+        });
+    }
+};
+
+
 // Update Category
 const updateCategory = async (req, res) => {
     try {
@@ -181,6 +206,7 @@ module.exports = {
     createCategory,
     getAllCategories,
     getCategoryById,
+    getActiveCategories,
     updateCategory,
     updateCategoryStatus
 };

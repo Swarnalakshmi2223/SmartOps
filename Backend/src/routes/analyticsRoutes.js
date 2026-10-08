@@ -10,7 +10,6 @@ const {
     getCategoryAnalytics,
     getStaffPerformance
 } = require("../controllers/analyticsController");
-
 router.get(
     "/dashboard",
     authMiddleware,

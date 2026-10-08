@@ -221,6 +221,28 @@
     white-space: nowrap;
 }
 
+.admin-request-link {
+    max-width: 220px;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    background: transparent;
+    color: #344054;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.admin-request-link:hover,
+.admin-request-link:focus-visible {
+    color: #1f5f82;
+    text-decoration: underline;
+}
+
 .admin-request-info span {
     color: #9aa4ab;
 

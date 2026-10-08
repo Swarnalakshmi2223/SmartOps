@@ -61,6 +61,24 @@ const getAllDepartments = async (req, res) => {
 };
 
 
+// Public registration only needs the names of active departments.
+const getActiveDepartments = async (req, res) => {
+    try {
+        const departments = await Department.find({ isActive: { $ne: false } })
+            .select("name")
+            .sort({ name: 1 });
+
+        return res.status(200).json({
+            message: "Active departments fetched successfully",
+            departments
+        });
+    } catch (error) {
+        return res.status(500).json({
+            message: "Failed to fetch active departments"
+        });
+    }
+};
+
 // Get Department By ID
 const getDepartmentById = async (req, res) => {
     try {
@@ -180,6 +198,7 @@ const updateDepartmentStatus = async (req, res) => {
 module.exports = {
     createDepartment,
     getAllDepartments,
+    getActiveDepartments,
     getDepartmentById,
     updateDepartment,
     updateDepartmentStatus

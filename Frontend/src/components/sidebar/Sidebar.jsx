@@ -10,7 +10,9 @@ import {
     FiLogOut,
     FiBriefcase,
     FiTag,
-    FiTrendingUp
+    FiTrendingUp,
+    FiActivity,
+    FiMessageSquare
 } from "react-icons/fi";
 
 import { useAuth } from "../../context/AuthContext";
@@ -75,6 +77,16 @@ const Sidebar = () => {
                     label: "Analytics",
                     path: "/admin/analytics",
                     icon: <FiTrendingUp />
+                },
+                {
+                    label: "Audit Logs",
+                    path: "/admin/audit-logs",
+                    icon: <FiActivity />
+                },
+                {
+                    label: "Feedback",
+                    path: "/admin/feedback",
+                    icon: <FiMessageSquare />
                 },
             ];
         }

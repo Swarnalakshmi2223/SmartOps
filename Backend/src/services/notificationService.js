@@ -1,4 +1,7 @@
 const Notification = require("../models/Notification");
+const {
+    emitNotificationCreated
+} = require("../socket/socketServer");
 
 
 // Create Automatic Notification
@@ -20,6 +23,8 @@ const createAutomaticNotification = async ({
             relatedRequest,
             relatedTask
         });
+
+        emitNotificationCreated(notification);
 
         console.log(
             `Automatic notification created for user: ${userId}`

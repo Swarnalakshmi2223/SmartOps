@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     FiSearch,
     FiUserPlus,
@@ -8,10 +9,13 @@ import {
 } from "react-icons/fi";
 
 import api from "../../services/api";
+import useRealtimeRefresh from "../../hooks/useRealtimeRefresh";
 
 import "./AdminRequests.css";
 
 const AdminRequests = () => {
+
+    const navigate = useNavigate();
 
     const [requests, setRequests] = useState([]);
 
@@ -106,6 +110,16 @@ const AdminRequests = () => {
         fetchStaff();
 
     }, []);
+
+    useRealtimeRefresh(() => fetchRequests(), [
+        "request.created",
+        "request.assigned",
+        "request.statusChanged",
+        "request.started",
+        "request.resolved",
+        "request.closed",
+        "request.commentAdded"
+    ]);
 
     const openAssignModal = (request) => {
 
@@ -479,11 +493,15 @@ const AdminRequests = () => {
 
                                                 <div className="admin-request-info">
 
-                                                    <strong>
+                                                    <button
+                                                        type="button"
+                                                        className="admin-request-link"
+                                                        onClick={() => navigate(`/admin/requests/${request._id}`)}
+                                                    >
                                                         {
                                                             request.title
                                                         }
-                                                    </strong>
+                                                    </button>
 
                                                     <span>
                                                         #
@@ -566,6 +584,22 @@ const AdminRequests = () => {
                                             </td>
 
                                             <td>
+
+                                                <button
+                                                    type="button"
+                                                    className="admin-assign-button"
+                                                    onClick={() => navigate(`/admin/requests/${request._id}`)}
+                                                >
+                                                    View
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    className="admin-assign-button"
+                                                    onClick={() => navigate(`/admin/ai-review/${request._id}`)}
+                                                >
+                                                    AI Review
+                                                </button>
 
                                                 {request.status !==
                                                     "Closed" && (

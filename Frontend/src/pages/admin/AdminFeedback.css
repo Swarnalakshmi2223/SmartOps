@@ -1,0 +1,139 @@
+.admin-feedback-page {
+    width: 100%;
+}
+
+.admin-feedback-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 22px;
+}
+
+.admin-feedback-header h2 {
+    margin: 0;
+    color: #263238;
+    font-size: 22px;
+    font-weight: 650;
+}
+
+.admin-feedback-header p {
+    margin: 6px 0 0;
+    color: #7a858d;
+    font-size: 13px;
+}
+
+.admin-feedback-average {
+    padding: 14px 18px;
+    background: #ffffff;
+    border: 1px solid #e1e6ea;
+    border-radius: 10px;
+    text-align: right;
+}
+
+.admin-feedback-average span {
+    display: block;
+    color: #7b8790;
+    font-size: 11px;
+    margin-bottom: 4px;
+}
+
+.admin-feedback-average strong {
+    color: #263238;
+    font-size: 20px;
+    font-weight: 650;
+}
+
+.admin-feedback-message,
+.admin-feedback-error {
+    padding: 30px;
+    background: #ffffff;
+    border: 1px solid #e1e6ea;
+    border-radius: 10px;
+    text-align: center;
+    color: #6e7b84;
+    font-size: 13px;
+}
+
+.admin-feedback-error {
+    background: #faf5f4;
+    color: #8a5b53;
+}
+
+.admin-feedback-empty {
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border: 1px solid #e1e6ea;
+    border-radius: 10px;
+    color: #89949c;
+    text-align: center;
+}
+
+.admin-feedback-empty svg {
+    margin-bottom: 12px;
+    font-size: 30px;
+}
+
+.admin-feedback-empty h4 {
+    margin: 0 0 5px;
+    color: #53616b;
+    font-size: 14px;
+}
+
+.admin-feedback-empty p {
+    margin: 0;
+    font-size: 11px;
+}
+
+.admin-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    background: #ffffff;
+    border: 1px solid #e1e6ea;
+    border-radius: 10px;
+}
+
+.admin-feedback-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.admin-feedback-table th {
+    padding: 13px 18px;
+    background: #f8f9fa;
+    color: #74808a;
+    font-size: 10px;
+    font-weight: 700;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.admin-feedback-table td {
+    padding: 14px 18px;
+    color: #53616b;
+    border-top: 1px solid #edf0f2;
+}
+
+.admin-feedback-comment {
+    max-width: 280px;
+}
+
+.admin-feedback-stars {
+    display: flex;
+    gap: 2px;
+}
+
+.admin-feedback-star {
+    color: #d9e0e4;
+    font-size: 14px;
+}
+
+.admin-feedback-star.filled {
+    color: #d4a94e;
+    fill: #d4a94e;
+}

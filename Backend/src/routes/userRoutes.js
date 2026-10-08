@@ -11,7 +11,9 @@ const {
     getStaffById,
     createStaff,
     updateStaff,
-    updateStaffStatus
+    updateStaffStatus,
+    updateMyProfile,
+    changeMyPassword
 } = require("../controllers/userController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -45,13 +47,19 @@ router.put("/staff/:id", authMiddleware,
 );
 
 router.patch("/staff/:id/status", authMiddleware,
-                    roleMiddleware("admin"),
-                    updateStaffStatus
+                     roleMiddleware("admin"),
+                     updateStaffStatus
 );
 
+// Self-service profile and password routes must be declared before /:id
+// so they cannot be interpreted as administrator user-management routes.
+router.put("/profile", authMiddleware, updateMyProfile);
+
+router.patch("/password", authMiddleware, changeMyPassword);
+
 router.get("/:id", authMiddleware,
-                    roleMiddleware("admin"),
-                    getUserById
+                 roleMiddleware("admin"),
+                 getUserById
 );
 router.put("/:id", authMiddleware,
                     roleMiddleware("admin"),
@@ -72,7 +80,5 @@ router.delete("/:id",authMiddleware,
                      roleMiddleware("admin"),
                      deleteUser
 );
-
-
 
 module.exports = router;

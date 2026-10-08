@@ -8,6 +8,7 @@ import {
 
 
 import api from "../../services/api";
+import useRealtimeRefresh from "../../hooks/useRealtimeRefresh";
 
 import "./MyRequests.css";
 
@@ -61,6 +62,15 @@ const MyRequests = () => {
         fetchRequests();
 
     }, []);
+
+    useRealtimeRefresh(() => fetchRequests(), [
+        "request.created",
+        "request.assigned",
+        "request.statusChanged",
+        "request.started",
+        "request.resolved",
+        "request.closed"
+    ]);
 
     const filteredRequests = requests.filter((request) => {
 

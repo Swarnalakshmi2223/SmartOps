@@ -53,6 +53,7 @@
 
 .create-request-button:hover {
     background: #263746;
+    box-shadow: 0 6px 14px rgba(52, 75, 92, 0.16);
 }
 
 .create-request-button svg {
@@ -130,6 +131,12 @@
     cursor: pointer;
 }
 
+.request-toolbar select:focus,
+.request-search:focus-within {
+    border-color: #718594;
+    box-shadow: 0 0 0 3px rgba(113, 133, 148, 0.09);
+}
+
 /* CARD */
 
 .requests-card {
@@ -140,6 +147,7 @@
     border-radius: 10px;
 
     overflow: hidden;
+    box-shadow: 0 3px 12px rgba(38, 55, 70, 0.04);
 }
 
 .requests-card-header {

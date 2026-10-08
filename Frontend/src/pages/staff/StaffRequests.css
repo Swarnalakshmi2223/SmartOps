@@ -71,6 +71,7 @@
     transition:
         border-color 0.2s ease,
         box-shadow 0.2s ease;
+    box-shadow: 0 2px 8px rgba(38, 55, 70, 0.03);
 }
 
 .staff-request-card:hover {
@@ -560,6 +561,22 @@
 /* RESPONSIVE */
 
 @media (max-width: 800px) {
+
+    .staff-request-card {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .staff-request-card-side {
+        min-width: 0;
+        align-items: flex-start;
+    }
+
+    .staff-request-meta {
+        flex-wrap: wrap;
+        gap: 10px 16px;
+    }
 
     .staff-request-card {
         align-items: flex-start;

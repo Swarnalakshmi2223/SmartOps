@@ -5,6 +5,9 @@ const User = require("../models/User");
 const {
     createAutomaticNotification
 } = require("../services/notificationService");
+const {
+    emitTaskEvent
+} = require("../socket/socketServer");
 
 
 // 1. Create Task
@@ -35,7 +38,7 @@ const createTask = async (req, res) => {
         const staff = await User.findOne({
             _id: assignedTo,
             role: "staff",
-            isActive: true
+            isActive: { $ne: false }
         });
 
         if (!staff) {
@@ -53,6 +56,8 @@ const createTask = async (req, res) => {
         });
 
         await task.save();
+
+        emitTaskEvent("task.assigned", task);
         
         await createAutomaticNotification({
             userId: assignedTo,
@@ -187,6 +192,11 @@ const startTask = async (req, res) => {
 
         await task.save();
 
+        emitTaskEvent("task.updated", task, {
+            previousStatus: "Pending",
+            status: "In Progress"
+        });
+
         // Get admin users
         const admins = await User.find({
             role: "admin",
@@ -251,6 +261,11 @@ const completeTask = async (req, res) => {
         task.completedAt = new Date();
 
         await task.save();
+
+        emitTaskEvent("task.updated", task, {
+            previousStatus: "In Progress",
+            status: "Completed"
+        });
 
         console.log("Task completed:", task._id);
 

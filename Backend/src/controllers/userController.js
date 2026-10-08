@@ -1,8 +1,27 @@
 const mongoose = require("mongoose");
 const User = require("../models/User");
+const Department = require("../models/Department");
 const bcrypt = require("bcryptjs");
 const user = require("../models/User");
 const createAuditLog = require("../utils/auditLogger");
+
+const isStrongPassword = (password) => (
+    typeof password === "string" &&
+    password.length >= 8 &&
+    /[a-z]/.test(password) &&
+    /[A-Z]/.test(password) &&
+    /\d/.test(password) &&
+    /[^A-Za-z0-9]/.test(password)
+);
+
+const isValidEmail = (email) => (
+    typeof email === "string" &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+);
+
+const isValidPhone = (phone) => (
+    !phone || /^[+()\-\s\d]{7,20}$/.test(phone)
+);
 
 const getAllUsers = async (req, res) => {
     try{
@@ -334,12 +353,51 @@ const getStaffById = async (req, res) => {
 
 const createStaff = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const name = typeof req.body.name === "string" ? req.body.name.trim() : "";
+        const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : "";
+        const phone = typeof req.body.phone === "string" ? req.body.phone.trim() : "";
+        const department = typeof req.body.department === "string" ? req.body.department.trim() : "";
+        const { password, confirmPassword } = req.body;
 
         // Validate required fields
-        if (!name || !email || !password) {
+        if (!name || !email || !password || !department) {
             return res.status(400).json({
-                message: "Name, email, and password are required"
+                message: "Name, email, password, and department are required"
+            });
+        }
+
+        if (name.length < 2 || name.length > 100 || !isValidEmail(email)) {
+            return res.status(400).json({
+                message: "A valid name and email are required"
+            });
+        }
+
+        if (confirmPassword !== undefined && password !== confirmPassword) {
+            return res.status(400).json({
+                message: "Password and confirmation do not match"
+            });
+        }
+
+        if (!isValidPhone(phone)) {
+            return res.status(400).json({
+                message: "Please provide a valid phone number"
+            });
+        }
+
+        if (!isStrongPassword(password)) {
+            return res.status(400).json({
+                message: "Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
+            });
+        }
+
+        const activeDepartment = await Department.findOne({
+            name: department,
+            isActive: { $ne: false }
+        });
+
+        if (!activeDepartment) {
+            return res.status(400).json({
+                message: "Please select an active department"
             });
         }
 
@@ -360,7 +418,9 @@ const createStaff = async (req, res) => {
         // Create staff account
         const staff = new User({
             name,
-            email: email.toLowerCase(),
+            email,
+            phone: phone || null,
+            department,
             password: hashedPassword,
             role: "staff",
             isActive: true
@@ -371,6 +431,13 @@ const createStaff = async (req, res) => {
         // Do not return password
         const staffResponse = staff.toObject();
         delete staffResponse.password;
+
+        await createAuditLog({
+            user: req.user.id,
+            action: "CREATE_STAFF",
+            module: "User Management",
+            description: `Staff member ${staff.name} was created`
+        });
 
         res.status(201).json({
             message: "Staff created successfully",
@@ -389,7 +456,7 @@ const createStaff = async (req, res) => {
 const updateStaff = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, email } = req.body;
+        const { name, email, phone, department } = req.body;
 
         const staff = await User.findOne({
             _id: id,
@@ -419,6 +486,29 @@ const updateStaff = async (req, res) => {
             }
 
             staff.email = email.toLowerCase();
+        }
+
+        if (phone !== undefined) {
+            if (!isValidPhone(phone)) {
+                return res.status(400).json({
+                    message: "Please provide a valid phone number"
+                });
+            }
+            staff.phone = String(phone).trim();
+        }
+
+        if (department !== undefined) {
+            const activeDepartment = await Department.findOne({
+                name: String(department).trim(),
+                isActive: { $ne: false }
+            });
+
+            if (!activeDepartment) {
+                return res.status(400).json({
+                    message: "Please select an active department"
+                });
+            }
+            staff.department = activeDepartment.name;
         }
 
         await staff.save();
@@ -484,6 +574,132 @@ const updateStaffStatus = async (req, res) => {
 
 
 
+const updateMyProfile = async (req, res) => {
+    try {
+        const { name, email, phone, department } = req.body;
+
+        const user = await User.findById(req.user.id);
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        if (name) {
+            user.name = name;
+        }
+
+        if (email) {
+            user.email = email.toLowerCase().trim();
+        }
+
+        if (phone !== undefined) {
+            user.phone = phone;
+        }
+
+        if (department !== undefined) {
+            user.department = department;
+        }
+
+        await user.save();
+
+        await createAuditLog({
+            user: req.user.id,
+            action: "UPDATE_PROFILE",
+            module: "Profile",
+            description: `${user.name} updated their own profile`
+        });
+
+        res.status(200).json({
+            message: "Profile updated successfully",
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                phone: user.phone,
+                department: user.department
+            }
+        });
+
+    } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({
+                message: "Email already exists"
+            });
+        }
+
+        res.status(500).json({
+            message: "Failed to update profile",
+            error: error.message
+        });
+    }
+};
+
+
+const changeMyPassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                message: "Current password and new password are required"
+            });
+        }
+
+        if (
+            typeof newPassword !== "string" ||
+            newPassword.length < 8 ||
+            !/[a-z]/.test(newPassword) ||
+            !/[A-Z]/.test(newPassword) ||
+            !/\d/.test(newPassword) ||
+            !/[^A-Za-z0-9]/.test(newPassword)
+        ) {
+            return res.status(400).json({
+                message: "New password must be at least 8 characters and include uppercase, lowercase, number, and special character"
+            });
+        }
+
+        const user = await User.findById(req.user.id);
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+
+        if (!isMatch) {
+            return res.status(400).json({
+                message: "Current password is incorrect"
+            });
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10);
+
+        await user.save();
+
+        await createAuditLog({
+            user: req.user.id,
+            action: "CHANGE_PASSWORD",
+            module: "Profile",
+            description: `${user.name} changed their password`
+        });
+
+        res.status(200).json({
+            message: "Password changed successfully"
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Failed to change password"
+        });
+    }
+};
+
+
 
 module.exports = {
     getAllUsers,
@@ -496,5 +712,7 @@ module.exports = {
     getStaffById,
     createStaff,
     updateStaff,
-    updateStaffStatus
+    updateStaffStatus,
+    updateMyProfile,
+    changeMyPassword
 };

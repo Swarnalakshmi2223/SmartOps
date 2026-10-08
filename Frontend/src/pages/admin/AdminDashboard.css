@@ -41,7 +41,7 @@
     display: flex;
     align-items: center;
 
-    padding: 18px;
+    padding: 15px;
 
     background: #ffffff;
 
@@ -58,7 +58,7 @@
     align-items: center;
     justify-content: center;
 
-    margin-right: 12px;
+    margin-right: 10px;
 
     border-radius: 9px;
 
@@ -66,7 +66,7 @@
 
     color: #496273;
 
-    font-size: 19px;
+    font-size: 17px;
 }
 
 .admin-stat-content {

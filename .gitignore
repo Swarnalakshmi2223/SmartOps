@@ -11,6 +11,7 @@
 **/dist/
 **/dist-ssr/
 **/coverage/
+**/uploads/
 
 # Logs and debug output
 logs/

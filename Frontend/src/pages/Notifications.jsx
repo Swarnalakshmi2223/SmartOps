@@ -3,28 +3,35 @@ import {
     FiBell,
     FiCheck,
     FiCheckCircle,
+    FiRefreshCw,
     FiTrash2
 } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
+import useRealtimeRefresh from "../hooks/useRealtimeRefresh";
 import "./Notifications.css";
 
 const Notifications = () => {
+    const { user } = useAuth();
+    const navigate = useNavigate();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState("");
     const [filter, setFilter] = useState("all");
+    const [error, setError] = useState("");
 
     const fetchNotifications = async () => {
         try {
             setLoading(true);
+            setError("");
 
             const response = await api.get("/notifications");
 
             setNotifications(response.data.notifications || []);
         } catch (error) {
             console.error("Failed to load notifications:", error);
-
-            alert(
+            setError(
                 error.response?.data?.message ||
                 "Failed to load notifications."
             );
@@ -36,6 +43,8 @@ const Notifications = () => {
     useEffect(() => {
         fetchNotifications();
     }, []);
+
+    useRealtimeRefresh(() => fetchNotifications(), ["notification.created"]);
 
     const markAsRead = async (notificationId) => {
         try {
@@ -52,10 +61,11 @@ const Notifications = () => {
                         : notification
                 )
             );
+            window.dispatchEvent(new Event("smartops:notifications-updated"));
         } catch (error) {
             console.error("Failed to mark notification as read:", error);
 
-            alert(
+            setError(
                 error.response?.data?.message ||
                 "Failed to mark notification as read."
             );
@@ -76,13 +86,14 @@ const Notifications = () => {
                     isRead: true
                 }))
             );
+            window.dispatchEvent(new Event("smartops:notifications-updated"));
         } catch (error) {
             console.error(
                 "Failed to mark all notifications as read:",
                 error
             );
 
-            alert(
+            setError(
                 error.response?.data?.message ||
                 "Failed to mark all notifications as read."
             );
@@ -113,18 +124,36 @@ const Notifications = () => {
                         notification._id !== notificationId
                 )
             );
+            window.dispatchEvent(new Event("smartops:notifications-updated"));
         } catch (error) {
             console.error(
                 "Failed to delete notification:",
                 error
             );
 
-            alert(
+            setError(
                 error.response?.data?.message ||
                 "Failed to delete notification."
             );
         } finally {
             setActionLoading("");
+        }
+    };
+
+    const openNotification = async (notification) => {
+        if (!notification.isRead) {
+            await markAsRead(notification._id);
+        }
+
+        if (notification.relatedRequest?._id) {
+            navigate(
+                `/${user?.role || "user"}/requests/${notification.relatedRequest._id}`
+            );
+            return;
+        }
+
+        if (notification.relatedTask?._id && user?.role !== "user") {
+            navigate(`/${user.role}/tasks`);
         }
     };
 
@@ -238,8 +267,28 @@ const Notifications = () => {
                             : "Mark all as read"}
                     </button>
 
+                    <button
+                        type="button"
+                        className="notification-refresh-button"
+                        onClick={fetchNotifications}
+                        disabled={actionLoading !== ""}
+                        title="Refresh notifications"
+                    >
+                        <FiRefreshCw />
+                        Refresh
+                    </button>
+
                 </div>
             </div>
+
+            {error && (
+                <div className="notifications-error" role="alert">
+                    <span>{error}</span>
+                    <button type="button" onClick={fetchNotifications}>
+                        Try again
+                    </button>
+                </div>
+            )}
 
             <div className="notification-filters">
 
@@ -297,6 +346,26 @@ const Notifications = () => {
                                 notification.isRead
                                     ? "notification-card read"
                                     : "notification-card unread"
+                            }
+                            onClick={() => openNotification(notification)}
+                            onKeyDown={(event) => {
+                                if (
+                                    (event.key === "Enter" || event.key === " ") &&
+                                    (notification.relatedRequest || notification.relatedTask)
+                                ) {
+                                    event.preventDefault();
+                                    openNotification(notification);
+                                }
+                            }}
+                            role={
+                                notification.relatedRequest || notification.relatedTask
+                                    ? "button"
+                                    : undefined
+                            }
+                            tabIndex={
+                                notification.relatedRequest || notification.relatedTask
+                                    ? 0
+                                    : undefined
                             }
                         >
 
@@ -367,11 +436,10 @@ const Notifications = () => {
                                 {!notification.isRead && (
                                     <button
                                         className="notification-action read-action"
-                                        onClick={() =>
-                                            markAsRead(
-                                                notification._id
-                                            )
-                                        }
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            markAsRead(notification._id);
+                                        }}
                                         disabled={
                                             actionLoading ===
                                             notification._id
@@ -384,11 +452,10 @@ const Notifications = () => {
 
                                 <button
                                     className="notification-action delete-action"
-                                    onClick={() =>
-                                        deleteNotification(
-                                            notification._id
-                                        )
-                                    }
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        deleteNotification(notification._id);
+                                    }}
                                     disabled={
                                         actionLoading ===
                                         notification._id

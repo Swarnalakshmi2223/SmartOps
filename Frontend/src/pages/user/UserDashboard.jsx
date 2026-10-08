@@ -7,6 +7,7 @@ import {
 } from "react-icons/fi";
 
 import api from "../../services/api";
+import useRealtimeRefresh from "../../hooks/useRealtimeRefresh";
 
 import "./UserDashboard.css";
 
@@ -19,6 +20,15 @@ const UserDashboard = () => {
     useEffect(() => {
         fetchRequests();
     }, []);
+
+    useRealtimeRefresh(() => fetchRequests(), [
+        "request.created",
+        "request.assigned",
+        "request.statusChanged",
+        "request.started",
+        "request.resolved",
+        "request.closed"
+    ]);
 
     const fetchRequests = async () => {
 

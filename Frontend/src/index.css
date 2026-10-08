@@ -18,6 +18,9 @@ body {
         sans-serif;
     background: #f4f6f8;
     color: #263238;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
 }
 
 button,
@@ -25,4 +28,145 @@ input,
 textarea,
 select {
     font: inherit;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 3px solid rgba(73, 98, 115, 0.28);
+    outline-offset: 2px;
+}
+
+button:not(:disabled),
+select,
+label[for] {
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: not-allowed;
+}
+
+::selection {
+    background: #d8e4ea;
+    color: #263746;
+}
+
+::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+::-webkit-scrollbar-track {
+    background: #edf1f3;
+}
+
+::-webkit-scrollbar-thumb {
+    border: 2px solid #edf1f3;
+    border-radius: 999px;
+    background: #b8c3ca;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #91a0aa;
+}
+
+/* Shared interaction polish for the existing SmartOps screens. */
+.stat-card,
+.staff-stat-card,
+.admin-stat-card,
+.requests-card,
+.requests-section,
+.staff-requests-section,
+.settings-card,
+.create-request-card,
+.request-main-card,
+.request-timeline-card,
+.request-comments-card,
+.request-feedback-card,
+.notifications-list,
+.admin-analytics-section,
+.admin-analytics-stat-card {
+    box-shadow: 0 2px 8px rgba(38, 55, 70, 0.035);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.stat-card:hover,
+.staff-stat-card:hover,
+.admin-stat-card:hover,
+.settings-card:hover,
+.admin-analytics-stat-card:hover {
+    border-color: #cbd6dc;
+    box-shadow: 0 8px 22px rgba(38, 55, 70, 0.07);
+    transform: translateY(-1px);
+}
+
+.status-badge,
+.priority-badge,
+.staff-status-badge,
+.staff-priority-badge,
+.admin-status-badge,
+.admin-priority-badge {
+    min-height: 24px;
+    justify-content: center;
+    letter-spacing: 0.1px;
+}
+
+.dashboard-message,
+.dashboard-error,
+.staff-dashboard-message,
+.staff-dashboard-error,
+.requests-message,
+.requests-error,
+.staff-requests-message,
+.staff-requests-error,
+.notifications-message,
+.notifications-error,
+.admin-dashboard-message,
+.admin-dashboard-error {
+    line-height: 1.6;
+}
+
+table th {
+    white-space: nowrap;
+}
+
+table tbody tr {
+    transition: background 0.15s ease;
+}
+
+.staff-modal-overlay,
+.admin-modal-overlay,
+.admin-task-modal-overlay,
+.admin-staff-modal-overlay {
+    backdrop-filter: blur(3px);
+}
+
+.staff-resolution-modal,
+.admin-assign-modal,
+.admin-task-modal,
+.admin-staff-modal {
+    border: 1px solid rgba(225, 230, 234, 0.95);
+    box-shadow: 0 20px 55px rgba(20, 35, 45, 0.2);
+}
+
+@media (max-width: 650px) {
+    .dashboard-content {
+        padding-top: 22px;
+    }
+
+    .form-row,
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
 }

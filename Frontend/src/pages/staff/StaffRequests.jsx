@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     FiFileText,
     FiPlay,
@@ -7,10 +8,13 @@ import {
 } from "react-icons/fi";
 
 import api from "../../services/api";
+import useRealtimeRefresh from "../../hooks/useRealtimeRefresh";
 
 import "./StaffRequests.css";
 
 const StaffRequests = () => {
+
+    const navigate = useNavigate();
 
     const [requests, setRequests] = useState([]);
 
@@ -67,6 +71,15 @@ const StaffRequests = () => {
         fetchRequests();
 
     }, []);
+
+    useRealtimeRefresh(() => fetchRequests(), [
+        "request.assigned",
+        "request.statusChanged",
+        "request.started",
+        "request.resolved",
+        "request.closed",
+        "request.commentAdded"
+    ]);
 
     const startRequest = async (requestId) => {
 
@@ -328,6 +341,14 @@ const StaffRequests = () => {
                                 </div>
 
                                 <div className="staff-request-actions">
+
+                                    <button
+                                        type="button"
+                                        className="staff-start-button"
+                                        onClick={() => navigate(`/staff/requests/${request._id}`)}
+                                    >
+                                        View Details
+                                    </button>
 
                                     {request.status ===
                                         "Assigned" && (

@@ -7,10 +7,16 @@ const roleMiddleware = require("../middleware/roleMiddleware");
 const {
     createDepartment,
     getAllDepartments,
+    getActiveDepartments,
     getDepartmentById,
     updateDepartment,
     updateDepartmentStatus
 } = require("../controllers/departmentController");
+
+router.get(
+    "/active",
+    getActiveDepartments
+);
 
 
 router.post(

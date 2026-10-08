@@ -115,6 +115,7 @@
 .sidebar-link.active {
     background: rgba(255, 255, 255, 0.12);
     color: #ffffff;
+    box-shadow: inset 3px 0 0 #dce8ed;
 }
 
 .sidebar-link-icon {

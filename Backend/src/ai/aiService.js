@@ -5,6 +5,18 @@ const {
 } = require("./aiRules");
 
 
+const escapeRegex = (value) =>
+    value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Whole-word match; allows simple plurals (printer -> printers)
+const containsKeyword = (text, keyword) => {
+    const pattern = new RegExp(
+        `(^|[^a-z0-9])${escapeRegex(keyword.toLowerCase())}(?:s|es)?($|[^a-z0-9])`
+    );
+
+    return pattern.test(text);
+};
+
 const findBestMatch = (text, rules) => {
     let bestMatch = null;
     let highestScore = 0;
@@ -13,7 +25,7 @@ const findBestMatch = (text, rules) => {
         let score = 0;
 
         for (const keyword of keywords) {
-            if (text.includes(keyword.toLowerCase())) {
+            if (containsKeyword(text, keyword)) {
                 score++;
             }
         }

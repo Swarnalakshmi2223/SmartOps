@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
 
@@ -11,9 +12,9 @@ const authMiddleware = (req, res, next) => {
             });
         }
         
-    const token = authHeader.split(" ")[1];
+    const [scheme, token] = authHeader.split(" ");
 
-    if(!token) {
+    if(scheme !== "Bearer" || !token) {
         return res.status(401).json({
             message: "Access denied. Invalid token format."
         });
@@ -24,7 +25,18 @@ const authMiddleware = (req, res, next) => {
         process.env.JWT_SECRET
     );
 
-    req.user = decoded;
+    const user = await User.findById(decoded.id).select("_id role isActive");
+
+    if (!user || user.isActive === false) {
+        return res.status(401).json({
+            message: "Your session is no longer active"
+        });
+    }
+
+    req.user = {
+        id: user._id.toString(),
+        role: user.role
+    };
 
     next();
 

@@ -1,4 +1,7 @@
 const Notification = require("../models/Notification");
+const {
+    emitNotificationCreated
+} = require("../socket/socketServer");
 
 
 // 1. Create Notification Manually
@@ -29,6 +32,8 @@ const createNotification = async (req, res) => {
         });
 
         await notification.save();
+
+        emitNotificationCreated(notification);
 
         res.status(201).json({
             message: "Notification created successfully",

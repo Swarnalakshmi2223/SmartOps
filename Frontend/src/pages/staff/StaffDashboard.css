@@ -2,6 +2,11 @@
     width: 100%;
 }
 
+.staff-dashboard .staff-stat-card,
+.staff-dashboard .staff-requests-section {
+    box-shadow: 0 3px 12px rgba(38, 55, 70, 0.04);
+}
+
 .staff-dashboard-welcome {
     margin-bottom: 24px;
 }

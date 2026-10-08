@@ -14,6 +14,7 @@ import "./AdminStaff.css";
 const AdminStaff = () => {
 
     const [staff, setStaff] = useState([]);
+    const [departments, setDepartments] = useState([]);
 
     const [loading, setLoading] = useState(true);
 
@@ -26,7 +27,10 @@ const AdminStaff = () => {
     const [formData, setFormData] = useState({
         name: "",
         email: "",
-        password: ""
+        phone: "",
+        department: "",
+        password: "",
+        confirmPassword: ""
     });
 
     const [saving, setSaving] = useState(false);
@@ -38,12 +42,17 @@ const AdminStaff = () => {
             setLoading(true);
             setError("");
 
-            const response = await api.get(
-                "/users/staff"
-            );
+            const [response, departmentResponse] = await Promise.all([
+                api.get("/users/staff"),
+                api.get("/departments")
+            ]);
 
             setStaff(
                 response.data.staff || []
+            );
+            setDepartments(
+                (departmentResponse.data.departments || [])
+                    .filter((department) => department.isActive !== false)
             );
 
         } catch (error) {
@@ -73,7 +82,10 @@ const AdminStaff = () => {
         setFormData({
             name: "",
             email: "",
-            password: ""
+            phone: "",
+            department: "",
+            password: "",
+            confirmPassword: ""
         });
 
         setShowModal(true);
@@ -86,7 +98,10 @@ const AdminStaff = () => {
         setFormData({
             name: member.name,
             email: member.email,
-            password: ""
+            phone: member.phone || "",
+            department: member.department || "",
+            password: "",
+            confirmPassword: ""
         });
 
         setShowModal(true);
@@ -101,7 +116,10 @@ const AdminStaff = () => {
         setFormData({
             name: "",
             email: "",
-            password: ""
+            phone: "",
+            department: "",
+            password: "",
+            confirmPassword: ""
         });
     };
 
@@ -127,7 +145,9 @@ const AdminStaff = () => {
                     `/users/staff/${editingStaff._id}`,
                     {
                         name: formData.name,
-                        email: formData.email
+                        email: formData.email,
+                        phone: formData.phone,
+                        department: formData.department
                     }
                 );
 
@@ -142,7 +162,10 @@ const AdminStaff = () => {
                     {
                         name: formData.name,
                         email: formData.email,
-                        password: formData.password
+                        phone: formData.phone,
+                        department: formData.department,
+                        password: formData.password,
+                        confirmPassword: formData.confirmPassword
                     }
                 );
 
@@ -478,6 +501,44 @@ const AdminStaff = () => {
                                     required
                                 />
 
+                                <label>
+                                    Phone Number
+                                </label>
+
+                                <input
+                                    type="tel"
+                                    name="phone"
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                    placeholder="Enter phone number"
+                                />
+
+                                <label>
+                                    Department
+                                </label>
+
+                                <select
+                                    name="department"
+                                    value={formData.department}
+                                    onChange={handleChange}
+                                    required={!editingStaff}
+                                >
+                                    <option value="">Select department</option>
+                                    {formData.department &&
+                                        !departments.some(
+                                            (department) => department.name === formData.department
+                                        ) && (
+                                            <option value={formData.department}>
+                                                {formData.department} (current)
+                                            </option>
+                                        )}
+                                    {departments.map((department) => (
+                                        <option key={department._id} value={department.name}>
+                                            {department.name}
+                                        </option>
+                                    ))}
+                                </select>
+
                                 {!editingStaff && (
 
                                     <>
@@ -495,6 +556,20 @@ const AdminStaff = () => {
                                                 handleChange
                                             }
                                             placeholder="Enter password"
+                                            required
+                                            minLength={6}
+                                        />
+
+                                        <label>
+                                            Confirm Password
+                                        </label>
+
+                                        <input
+                                            type="password"
+                                            name="confirmPassword"
+                                            value={formData.confirmPassword}
+                                            onChange={handleChange}
+                                            placeholder="Confirm password"
                                             required
                                             minLength={6}
                                         />

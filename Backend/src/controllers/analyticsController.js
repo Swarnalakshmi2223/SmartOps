@@ -23,6 +23,10 @@ const getDashboardAnalytics = async (req, res) => {
             status: "Resolved"
         });
 
+        const closedRequests = await Request.countDocuments({
+            status: "Closed"
+        });
+
         // Priority counts
         const highPriorityRequests = await Request.countDocuments({
             priority: "High"
@@ -65,7 +69,8 @@ const getDashboardAnalytics = async (req, res) => {
                     pending: pendingRequests,
                     assigned: assignedRequests,
                     inProgress: inProgressRequests,
-                    resolved: resolvedRequests
+                    resolved: resolvedRequests,
+                    closed: closedRequests
                 },
 
                 priority: {
@@ -158,6 +163,18 @@ const getStaffPerformance = async (req, res) => {
                         }
                     },
 
+                    closed: {
+                        $sum: {
+                            $cond: [
+                                {
+                                    $eq: ["$status", "Closed"]
+                                },
+                                1,
+                                0
+                            ]
+                        }
+                    },
+
                     pending: {
                         $sum: {
                             $cond: [
@@ -202,6 +219,7 @@ const getStaffPerformance = async (req, res) => {
                     staffEmail: "$staff.email",
                     totalAssigned: 1,
                     resolved: 1,
+                    closed: 1,
                     pending: 1,
                     inProgress: 1
                 }

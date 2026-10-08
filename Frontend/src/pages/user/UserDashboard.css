@@ -292,6 +292,11 @@
     background: #faf5f4;
 }
 
+.user-dashboard .stat-card,
+.user-dashboard .requests-section {
+    box-shadow: 0 3px 12px rgba(38, 55, 70, 0.04);
+}
+
 /* EMPTY STATE */
 
 .empty-state {
@@ -349,6 +354,10 @@
     .requests-table th,
     .requests-table td {
         padding: 12px 14px;
+    }
+
+    .dashboard-welcome h2 {
+        font-size: 20px;
     }
 
 }

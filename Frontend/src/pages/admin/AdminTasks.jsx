@@ -6,6 +6,7 @@ import {
 } from "react-icons/fi";
 
 import api from "../../services/api";
+import useRealtimeRefresh from "../../hooks/useRealtimeRefresh";
 
 import "./AdminTasks.css";
 
@@ -87,6 +88,8 @@ const AdminTasks = () => {
         fetchData();
 
     }, []);
+
+    useRealtimeRefresh(() => fetchData(), ["task.assigned", "task.updated"]);
 
     const openCreateModal = () => {
 

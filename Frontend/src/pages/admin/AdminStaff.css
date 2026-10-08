@@ -358,7 +358,8 @@
     font-weight: 650;
 }
 
-.admin-staff-modal-body input {
+.admin-staff-modal-body input,
+.admin-staff-modal-body select {
     width: 100%;
     height: 40px;
 
@@ -381,7 +382,13 @@
     font-size: 11px;
 }
 
-.admin-staff-modal-body input:focus {
+.admin-staff-modal-body select {
+    margin-bottom: 16px;
+    background: #ffffff;
+}
+
+.admin-staff-modal-body input:focus,
+.admin-staff-modal-body select:focus {
     border-color: #91a3ae;
 }
 

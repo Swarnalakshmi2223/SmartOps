@@ -2,6 +2,8 @@
     padding: 28px;
     min-height: 100%;
     background: #f7f8fa;
+    max-width: 1180px;
+    margin: 0 auto;
 }
 
 .notifications-header {
@@ -71,6 +73,51 @@
     cursor: not-allowed;
 }
 
+.notification-refresh-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #dfe3e8;
+    background: #ffffff;
+    color: #475569;
+    padding: 10px 14px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.notification-refresh-button:hover {
+    background: #f8fafc;
+}
+
+.notification-refresh-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.notifications-error {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    background: #fff7f7;
+    border: 1px solid #f0caca;
+    border-radius: 9px;
+    color: #9f4141;
+    font-size: 13px;
+}
+
+.notifications-error button {
+    border: none;
+    background: transparent;
+    color: #8f3535;
+    cursor: pointer;
+    font-weight: 700;
+}
+
 .notification-filters {
     display: flex;
     gap: 8px;
@@ -113,11 +160,21 @@
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     transition: 0.2s ease;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.025);
 }
 
 .notification-card:hover {
     border-color: #cbd5e1;
     box-shadow: 0 5px 18px rgba(15, 23, 42, 0.05);
+}
+
+.notification-card[role="button"] {
+    cursor: pointer;
+}
+
+.notification-card[role="button"]:focus-visible {
+    outline: 2px solid #64748b;
+    outline-offset: 2px;
 }
 
 .notification-card.unread {
@@ -306,7 +363,17 @@
         flex-wrap: wrap;
     }
 
+    .notification-top {
+        flex-direction: column;
+        gap: 8px;
+    }
+
     .mark-all-button {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .notification-refresh-button {
         flex: 1;
         justify-content: center;
     }

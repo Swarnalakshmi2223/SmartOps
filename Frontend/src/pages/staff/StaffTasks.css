@@ -55,6 +55,7 @@
     padding: 18px;
     transition: box-shadow 0.2s ease,
                 transform 0.2s ease;
+    box-shadow: 0 2px 8px rgba(38, 55, 70, 0.03);
 }
 
 .staff-task-card:hover {
@@ -185,6 +186,7 @@
 
 .staff-start-button:hover {
     background: #3e5666;
+    box-shadow: 0 5px 12px rgba(73, 98, 115, 0.18);
 }
 
 .staff-complete-button {

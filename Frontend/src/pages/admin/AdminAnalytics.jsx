@@ -196,6 +196,7 @@ const AdminAnalytics = () => {
                                             <th>Pending</th>
                                             <th>In Progress</th>
                                             <th>Resolved</th>
+                                            <th>Closed</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -206,6 +207,7 @@ const AdminAnalytics = () => {
                                                 <td>{staff.pending}</td>
                                                 <td>{staff.inProgress}</td>
                                                 <td>{staff.resolved}</td>
+                                                <td>{staff.closed}</td>
                                             </tr>
                                         ))}
                                     </tbody>

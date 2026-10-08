@@ -203,6 +203,12 @@ const Login = () => {
                     </form>
 
                     <div className="login-footer">
+                        <p className="login-register-prompt">
+                            New to SmartOps?{" "}
+                            <button type="button" onClick={() => navigate("/register")}>
+                                Create an employee account
+                            </button>
+                        </p>
                         <p>
                             SmartOps Service Management Platform
                         </p>

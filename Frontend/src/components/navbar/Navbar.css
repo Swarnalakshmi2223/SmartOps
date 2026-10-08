@@ -10,6 +10,10 @@
     background: #ffffff;
 
     border-bottom: 1px solid #e1e6ea;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    box-shadow: 0 2px 8px rgba(38, 55, 70, 0.035);
 }
 
 .navbar-page-info h1 {
@@ -67,19 +71,27 @@
     color: #263746;
 }
 
-.notification-dot {
-    width: 6px;
-    height: 6px;
+.notification-count {
+    min-width: 17px;
+    height: 17px;
 
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: 2px;
+    right: 0;
 
-    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     background: #b35c55;
 
+    border-radius: 999px;
     border: 2px solid #ffffff;
+
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1;
 }
 
 .navbar-divider {

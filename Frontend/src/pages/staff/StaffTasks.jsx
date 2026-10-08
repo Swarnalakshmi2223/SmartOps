@@ -7,6 +7,7 @@ import {
 } from "react-icons/fi";
 
 import api from "../../services/api";
+import useRealtimeRefresh from "../../hooks/useRealtimeRefresh";
 
 import "./StaffTasks.css";
 
@@ -39,6 +40,8 @@ const StaffTasks = () => {
     useEffect(() => {
         fetchTasks();
     }, []);
+
+    useRealtimeRefresh(() => fetchTasks(), ["task.assigned", "task.updated"]);
 
     const startTask = async (taskId) => {
         try {

@@ -1,16 +1,34 @@
 const Request = require("../models/Request");
 const User = require("../models/User");
+const mongoose = require("mongoose");
+const fs = require("fs");
+const path = require("path");
 const createAuditLog = require("../utils/auditLogger");
+const {
+    analyzeRequest,
+    findDuplicateRequests
+} = require("../ai/aiService");
 
 const {
     createAutomaticNotification
 } = require("../services/notificationService");
+const { sendEmail } = require("../services/emailService");
+const {
+    emitRequestEvent
+} = require("../socket/socketServer");
 
 const createRequest = async (req, res) => {
     try {
-        const { title, description, category, priority } = req.body;
+        const {
+            title,
+            description,
+            category,
+            priority,
+            department,
+            location
+        } = req.body;
 
-        if (!title || !description || !category ){
+        if (!title || !description || !category) {
             return res.status(400).json({
                 message: "Title, Description, and category are required"
             });
@@ -21,37 +39,138 @@ const createRequest = async (req, res) => {
             description,
             category,
             priority: priority || "Medium",
-            createdBy: req.user.id
+            department: department || null,
+            location: location || null,
+            attachment: req.file ? req.file.filename : null,
+            createdBy: req.user.id,
+
+            // Initial request status history
+            statusHistory: [
+                {
+                    status: "Pending",
+                    changedBy: req.user.id,
+                    changedAt: new Date(),
+                    comment: "Request created"
+                }
+            ]
         });
+
+        // AI assistance: must never stop the request from being saved
+        try {
+            const analysis = analyzeRequest({
+                title,
+                description
+            });
+
+            newRequest.aiCategory = analysis.category;
+            newRequest.aiDepartment = analysis.department;
+            newRequest.aiPriority = analysis.priority;
+            newRequest.aiCategoryScore = analysis.categoryScore;
+            newRequest.aiDepartmentScore = analysis.departmentScore;
+            newRequest.aiPriorityScore = analysis.priorityScore;
+            newRequest.aiAnalyzedAt = new Date();
+
+            const existingRequests = await Request.find()
+                .select("title description")
+                .sort({ createdAt: -1 })
+                .limit(500)
+                .lean();
+
+            const duplicates = await findDuplicateRequests(
+                { title, description },
+                existingRequests
+            );
+
+            newRequest.aiDuplicates = duplicates
+                .slice(0, 5)
+                .map((item) => ({
+                    requestId: item.requestId,
+                    title: item.title,
+                    similarity: item.similarity
+                }));
+
+        } catch (aiError) {
+            console.error("AI analysis skipped:", aiError.message);
+        }
 
         await newRequest.save();
 
+        // Send the request-creation email only after the request is safely stored.
+        // Email delivery must not turn a successful request creation into a failure.
+        try {
+            const requestCreator = await User.findById(req.user.id)
+                .select("name email")
+                .lean();
+            const recipientEmail = requestCreator?.email?.trim();
+            const hasValidRecipientEmail = Boolean(
+                recipientEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)
+            );
 
-        
-    await createAuditLog({
-       user: req.user.id,
-       action: "CREATE_REQUEST",
-       module: "Request Management",
-       description: "User created a new service request",
-       request: newRequest._id
-   });
+            console.log("Request creation email event:", {
+                requestId: newRequest._id.toString(),
+                recipientEmailPresent: Boolean(recipientEmail),
+                recipientEmailValid: hasValidRecipientEmail
+            });
 
-    res.status(201).json({
-        message: "Request created Successfully",
-        request: newRequest
-    });
+            if (!hasValidRecipientEmail) {
+                console.warn("Request creation email skipped: creator email is unavailable or invalid", {
+                    requestId: newRequest._id.toString()
+                });
+            } else {
+                const emailResult = await sendEmail({
+                    to: recipientEmail,
+                    subject: `SmartOps request created: ${newRequest.title}`,
+                    text: `Your SmartOps service request has been created successfully.\n\nRequest: ${newRequest.title}\nRequest ID: ${newRequest.requestNumber || newRequest._id}\nStatus: ${newRequest.status}`,
+                    html: `
+                        <h2>SmartOps request created</h2>
+                        <p>Your service request has been created successfully.</p>
+                        <p><strong>Request:</strong> ${newRequest.title}</p>
+                        <p><strong>Request ID:</strong> ${newRequest.requestNumber || newRequest._id}</p>
+                        <p><strong>Status:</strong> ${newRequest.status}</p>
+                    `
+                });
 
-       
+                console.log("Request creation email result:", {
+                    requestId: newRequest._id.toString(),
+                    success: emailResult.success
+                });
+            }
+        } catch (emailError) {
+            console.error("Request creation email flow failed:", {
+                requestId: newRequest._id.toString(),
+                message: emailError.message
+            });
+        }
+
+        emitRequestEvent("request.created", newRequest);
+
+        // Audit log
+        await createAuditLog({
+            user: req.user.id,
+            action: "CREATE_REQUEST",
+            module: "Request Management",
+            description: "User created a new service request",
+            request: newRequest._id
+        });
+
+        // Do not expose AI duplicate details in normal response
+        const responseRequest = newRequest.toObject();
+        delete responseRequest.aiDuplicates;
+
+        return res.status(201).json({
+            message: "Request created successfully",
+            request: responseRequest
+        });
+
     } catch (error) {
-        res.status(500).json({
+        console.error("Create request error:", error);
+
+        return res.status(500).json({
             message: "Failed to create request",
             error: error.message
         });
     }
-
-
 };
-
 
 const getMyRequests = async (req, res) => {
     try{
@@ -80,7 +199,17 @@ const getRequestById = async (req, res) => {
     try {
            const { id } = req.params;
 
-           const request = await Request.findById(id);
+           if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({
+                    message: "Invalid request ID"
+                });
+           }
+
+           const request = await Request.findById(id)
+               .populate("createdBy", "name email role")
+               .populate("assignedTo", "name email role")
+               .populate("statusHistory.changedBy", "name email role")
+               .populate("comments.user", "name email role");
 
            if (!request) {
             return res.status(404).json({
@@ -88,7 +217,11 @@ const getRequestById = async (req, res) => {
             });
            }
 
-           if(request.createdBy.toString() !== req.user.id) {
+           const isAdmin = req.user.role === "admin";
+           const isRequester = request.createdBy?._id?.toString() === req.user.id;
+           const isAssignedStaff = request.assignedTo?._id?.toString() === req.user.id;
+
+           if (!isAdmin && !isRequester && !isAssignedStaff) {
             return res.status(403).json({
                 message: "You do not have permission to view this request"
             });
@@ -109,6 +242,110 @@ const getRequestById = async (req, res) => {
 
 
 
+
+const requestUploadDirectory = path.resolve(
+    __dirname,
+    "../../uploads"
+);
+
+const isValidStoredFilename = (filename) => {
+    return (
+        typeof filename === "string" &&
+        path.basename(filename) === filename &&
+        /^[a-zA-Z0-9_-]+\.(jpg|jpeg|png|webp|pdf|doc|docx)$/i.test(
+            filename
+        )
+    );
+};
+
+const canAccessRequestFile = (request, user) => {
+    const isAdmin = user.role === "admin";
+    const isRequester = request.createdBy?.toString() === user.id;
+    const isAssignedStaff = request.assignedTo?.toString() === user.id;
+
+    return isAdmin || isRequester || isAssignedStaff;
+};
+
+const sendRequestFile = async (req, res, fieldName, fileLabel) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                message: "Invalid request ID"
+            });
+        }
+
+        const request = await Request.findById(req.params.id).select(
+            `createdBy assignedTo ${fieldName}`
+        );
+
+        if (!request) {
+            return res.status(404).json({
+                message: "Request not found"
+            });
+        }
+
+        if (!canAccessRequestFile(request, req.user)) {
+            return res.status(403).json({
+                message: `You do not have permission to view this ${fileLabel}`
+            });
+        }
+
+        const filename = request[fieldName];
+
+        if (!filename) {
+            return res.status(404).json({
+                message: `${fileLabel} not found`
+            });
+        }
+
+        if (!isValidStoredFilename(filename)) {
+            return res.status(404).json({
+                message: `Invalid ${fileLabel} reference`
+            });
+        }
+
+        const filePath = path.resolve(
+            requestUploadDirectory,
+            filename
+        );
+
+        if (
+            !filePath.startsWith(
+                `${requestUploadDirectory}${path.sep}`
+            ) ||
+            !fs.existsSync(filePath)
+        ) {
+            return res.status(404).json({
+                message: `${fileLabel} not found`
+            });
+        }
+
+        return res.sendFile(filePath);
+    } catch (error) {
+        return res.status(500).json({
+            message: `Failed to fetch ${fileLabel}`,
+            error: error.message
+        });
+    }
+};
+
+const getRequestAttachment = async (req, res) => {
+    return sendRequestFile(
+        req,
+        res,
+        "attachment",
+        "attachment"
+    );
+};
+
+const getResolutionEvidence = async (req, res) => {
+    return sendRequestFile(
+        req,
+        res,
+        "resolutionEvidence",
+        "resolution evidence"
+    );
+};
 
 const updateRequest = async (req, res) => {
     try {
@@ -171,7 +408,7 @@ const updateRequestStatus = async (req, res) => {
             "Assigned",
             "In Progress",
             "Resolved",
-            "Rejected"
+            "Closed"
         ];
 
         // Validate status
@@ -189,12 +426,32 @@ const updateRequestStatus = async (req, res) => {
             });
         }
 
+        const validTransitions = {
+            Pending: ["Assigned"],
+            Assigned: ["In Progress"],
+            "In Progress": ["Resolved"],
+            Resolved: ["Closed"],
+            Closed: []
+        };
+
+        if (!validTransitions[request.status]?.includes(status)) {
+            return res.status(400).json({
+                message: `Invalid status transition from ${request.status} to ${status}`
+            });
+        }
+
         // USER can update only their own request
         if (req.user.role === "user") {
 
             if (request.createdBy.toString() !== req.user.id) {
                 return res.status(403).json({
                     message: "You do not have permission to update this request"
+                });
+            }
+
+            if (status !== "Closed") {
+                return res.status(403).json({
+                    message: "Users can only close their own resolved requests"
                 });
             }
 
@@ -212,6 +469,18 @@ const updateRequestStatus = async (req, res) => {
                 });
             }
 
+            if (!["In Progress", "Resolved"].includes(status)) {
+                return res.status(403).json({
+                    message: "Staff can only start or resolve assigned requests"
+                });
+            }
+
+        }
+
+        if (status === "Closed" && req.user.role !== "user") {
+            return res.status(403).json({
+                message: "Only the request owner can close a request"
+            });
         }
 
         // ADMIN can update any request
@@ -219,7 +488,23 @@ const updateRequestStatus = async (req, res) => {
          const oldStatus = request.status;
         request.status = status;
 
+        if (!request.statusHistory) {
+            request.statusHistory = [];
+        }
+
+        request.statusHistory.push({
+            status,
+            changedBy: req.user.id,
+            changedAt: new Date(),
+            comment: `Request status changed from ${oldStatus} to ${status}`
+        });
+
         await request.save();
+
+        emitRequestEvent("request.statusChanged", request, {
+            previousStatus: oldStatus,
+            status
+        });
         
                
         await createAuditLog({
@@ -265,7 +550,6 @@ const getAllRequests = async (req, res) =>{
 };
 
 
-
 const assignRequest = async (req, res) => {
     try {
         const { id } = req.params;
@@ -288,7 +572,9 @@ const assignRequest = async (req, res) => {
         const staff = await User.findOne({
             _id: staffId,
             role: "staff",
-            isActive: true
+            // Older users may not have the field persisted because the schema
+            // default was added later; only an explicit false is inactive.
+            isActive: { $ne: false }
         });
 
         if (!staff) {
@@ -300,7 +586,23 @@ const assignRequest = async (req, res) => {
         request.assignedTo = staffId;
         request.status = "Assigned";
 
+        // Add status history
+        if (!request.statusHistory) {
+            request.statusHistory = [];
+        }
+
+        request.statusHistory.push({
+            status: "Assigned",
+            changedBy: req.user.id,
+            changedAt: new Date(),
+            comment: `Request assigned to ${staff.name}`
+        });
+
         await request.save();
+
+        emitRequestEvent("request.assigned", request, {
+            staffId
+        });
 
         await createAutomaticNotification({
             userId: staffId,
@@ -310,7 +612,7 @@ const assignRequest = async (req, res) => {
             relatedRequest: request._id
         });
 
-        res.status(200).json({
+        return res.status(200).json({
             message: "Request assigned successfully",
             request
         });
@@ -318,7 +620,7 @@ const assignRequest = async (req, res) => {
     } catch (error) {
         console.error("Assign request error:", error);
 
-        res.status(500).json({
+        return res.status(500).json({
             message: "Failed to assign request",
             error: error.message
         });
@@ -378,7 +680,28 @@ const startRequest = async (req, res) => {
 
         request.status = "In Progress";
 
+        // Add status history
+        if (!request.statusHistory) {
+            request.statusHistory = [];
+        }
+
+        request.statusHistory.push({
+            status: "In Progress",
+            changedBy: req.user.id,
+            changedAt: new Date(),
+            comment: "Staff started working on the request"
+        });
+
         await request.save();
+
+        emitRequestEvent("request.started", request, {
+            previousStatus: "Assigned",
+            status: "In Progress"
+        });
+        emitRequestEvent("request.statusChanged", request, {
+            previousStatus: "Assigned",
+            status: "In Progress"
+        });
 
         await createAutomaticNotification({
             userId: request.createdBy,
@@ -388,7 +711,7 @@ const startRequest = async (req, res) => {
             relatedRequest: request._id
         });
 
-        res.status(200).json({
+        return res.status(200).json({
             message: "Request started successfully",
             request
         });
@@ -396,7 +719,7 @@ const startRequest = async (req, res) => {
     } catch (error) {
         console.error("Start request error:", error);
 
-        res.status(500).json({
+        return res.status(500).json({
             message: "Failed to start request",
             error: error.message
         });
@@ -408,7 +731,7 @@ const resolveRequest = async (req, res) => {
         const { id } = req.params;
         const { resolution } = req.body;
 
-        if (!resolution) {
+        if (!resolution || !resolution.trim()) {
             return res.status(400).json({
                 message: "Resolution is required"
             });
@@ -437,10 +760,31 @@ const resolveRequest = async (req, res) => {
             });
         }
 
-        request.resolution = resolution;
+        request.resolution = resolution.trim();
         request.status = "Resolved";
 
+        // Add status history
+        if (!request.statusHistory) {
+            request.statusHistory = [];
+        }
+
+        request.statusHistory.push({
+            status: "Resolved",
+            changedBy: req.user.id,
+            changedAt: new Date(),
+            comment: "Staff resolved the request"
+        });
+
         await request.save();
+
+        emitRequestEvent("request.resolved", request, {
+            previousStatus: "In Progress",
+            status: "Resolved"
+        });
+        emitRequestEvent("request.statusChanged", request, {
+            previousStatus: "In Progress",
+            status: "Resolved"
+        });
 
         // Notify the user who created the request
         await createAutomaticNotification({
@@ -451,7 +795,7 @@ const resolveRequest = async (req, res) => {
             relatedRequest: request._id
         });
 
-        res.status(200).json({
+        return res.status(200).json({
             message: "Request resolved successfully",
             request
         });
@@ -459,7 +803,7 @@ const resolveRequest = async (req, res) => {
     } catch (error) {
         console.error("Resolve request error:", error);
 
-        res.status(500).json({
+        return res.status(500).json({
             message: "Failed to resolve request",
             error: error.message
         });
@@ -494,7 +838,28 @@ const closeRequest = async (req, res) => {
 
         request.status = "Closed";
 
+        // Add status history
+        if (!request.statusHistory) {
+            request.statusHistory = [];
+        }
+
+        request.statusHistory.push({
+            status: "Closed",
+            changedBy: req.user.id,
+            changedAt: new Date(),
+            comment: "Request closed by requester"
+        });
+
         await request.save();
+
+        emitRequestEvent("request.closed", request, {
+            previousStatus: "Resolved",
+            status: "Closed"
+        });
+        emitRequestEvent("request.statusChanged", request, {
+            previousStatus: "Resolved",
+            status: "Closed"
+        });
 
         // Notify assigned staff
         if (request.assignedTo) {
@@ -507,7 +872,7 @@ const closeRequest = async (req, res) => {
             });
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             message: "Request closed successfully",
             request
         });
@@ -515,13 +880,12 @@ const closeRequest = async (req, res) => {
     } catch (error) {
         console.error("Close request error:", error);
 
-        res.status(500).json({
+        return res.status(500).json({
             message: "Failed to close request",
             error: error.message
         });
     }
 };
-
 
 // 11. Search and Filter Requests
 const searchRequests = async (req, res) => {
@@ -602,11 +966,132 @@ const searchRequests = async (req, res) => {
     }
 };
 
+const addComment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { text } = req.body;
+
+        if (!text || !text.trim()) {
+            return res.status(400).json({
+                message: "Comment text is required"
+            });
+        }
+
+        const request = await Request.findById(id);
+
+        if (!request) {
+            return res.status(404).json({
+                message: "Request not found"
+            });
+        }
+
+        // Admin can comment on any request
+        // Request creator can comment
+        // Assigned staff can comment
+        const isAdmin = req.user.role === "admin";
+
+        const isRequester =
+            request.createdBy &&
+            request.createdBy.toString() === req.user.id;
+
+        const isAssignedStaff =
+            request.assignedTo &&
+            request.assignedTo.toString() === req.user.id;
+
+        if (!isAdmin && !isRequester && !isAssignedStaff) {
+            return res.status(403).json({
+                message: "You are not allowed to comment on this request"
+            });
+        }
+
+        const comment = {
+            user: req.user.id,
+            text: text.trim(),
+            createdAt: new Date()
+        };
+
+        request.comments.push(comment);
+
+        await request.save();
+
+        const addedComment =
+            request.comments[request.comments.length - 1];
+
+        emitRequestEvent("request.commentAdded", request, {
+            comment: addedComment
+        });
+
+        return res.status(201).json({
+            message: "Comment added successfully",
+            comment: addedComment
+        });
+
+    } catch (error) {
+        console.error("Add comment error:", error);
+
+        return res.status(500).json({
+            message: "Failed to add comment",
+            error: error.message
+        });
+    }
+};
+
+
+const getComments = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const request = await Request.findById(id)
+            .select("createdBy assignedTo comments")
+            .populate("comments.user", "name email role");
+
+        if (!request) {
+            return res.status(404).json({
+                message: "Request not found"
+            });
+        }
+
+        // Admin can view comments on any request
+        const isAdmin = req.user.role === "admin";
+
+        // Request creator can view comments
+        const isRequester =
+            request.createdBy &&
+            request.createdBy.toString() === req.user.id;
+
+        // Assigned staff can view comments
+        const isAssignedStaff =
+            request.assignedTo &&
+            request.assignedTo.toString() === req.user.id;
+
+        if (!isAdmin && !isRequester && !isAssignedStaff) {
+            return res.status(403).json({
+                message: "You are not allowed to view these comments"
+            });
+        }
+
+        return res.status(200).json({
+            message: "Comments fetched successfully",
+            comments: request.comments
+        });
+
+    } catch (error) {
+        console.error("Get comments error:", error);
+
+        return res.status(500).json({
+            message: "Failed to fetch comments",
+            error: error.message
+        });
+    }
+};
+
 
 module.exports = {
     createRequest,
     getMyRequests,
     getRequestById,
+    getRequestAttachment,
+    getResolutionEvidence,
     updateRequest,
     updateRequestStatus,
     getAllRequests,
@@ -615,5 +1100,7 @@ module.exports = {
     startRequest,
     resolveRequest,
     closeRequest,
-    searchRequests
+    searchRequests,
+    addComment,
+    getComments
 };

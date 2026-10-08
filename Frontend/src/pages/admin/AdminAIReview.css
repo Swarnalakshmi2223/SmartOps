@@ -1,0 +1,306 @@
+.admin-ai-review-page {
+    width: 100%;
+}
+
+.admin-ai-review-back {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 20px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #61727e;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.admin-ai-review-header,
+.admin-ai-card-header,
+.admin-ai-duplicate-header,
+.admin-ai-duplicate-footer {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.admin-ai-review-header {
+    margin-bottom: 20px;
+}
+
+.admin-ai-review-header span,
+.admin-ai-card-header span,
+.admin-ai-duplicate-header span {
+    color: #89949c;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.admin-ai-review-header h2,
+.admin-ai-card-header h3,
+.admin-ai-duplicate-header h4 {
+    margin: 5px 0 0;
+    color: #263238;
+}
+
+.admin-ai-review-header h2 {
+    font-size: 22px;
+}
+
+.admin-ai-review-header p {
+    margin: 6px 0 0;
+    color: #7a858d;
+    font-size: 12px;
+}
+
+.admin-ai-refresh-button,
+.admin-ai-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 9px 13px;
+    border: 0;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.admin-ai-refresh-button {
+    background: #e9eef1;
+    color: #496273;
+}
+
+.admin-ai-refresh-button:disabled,
+.admin-ai-actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.admin-ai-review-message,
+.admin-ai-review-error,
+.admin-ai-review-success,
+.admin-ai-empty {
+    padding: 25px;
+    border: 1px solid #e1e6ea;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+.admin-ai-review-message {
+    background: #ffffff;
+    color: #6e7b84;
+    text-align: center;
+}
+
+.admin-ai-review-error {
+    margin-bottom: 16px;
+    background: #faf5f4;
+    color: #8a5b53;
+}
+
+.admin-ai-review-success {
+    margin-bottom: 16px;
+    border-color: #dce8e3;
+    background: #f5f9f7;
+    color: #536b61;
+}
+
+.admin-ai-card {
+    margin-bottom: 18px;
+    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #e1e6ea;
+    border-radius: 10px;
+}
+
+.admin-ai-card-header {
+    padding-bottom: 16px;
+    border-bottom: 1px solid #edf0f2;
+}
+
+.admin-ai-card-header h3 {
+    font-size: 15px;
+}
+
+.admin-ai-status-badge,
+.admin-ai-review-status,
+.admin-ai-decision {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.admin-ai-status-badge,
+.admin-ai-review-status.pending,
+.admin-ai-decision.pending {
+    background: #f4efe3;
+    color: #8a6b2f;
+}
+
+.admin-ai-review-status.reviewed,
+.admin-ai-decision.confirmed {
+    background: #e8f0ed;
+    color: #4f6f63;
+}
+
+.admin-ai-decision.rejected {
+    background: #faf5f4;
+    color: #8a5b53;
+}
+
+.admin-ai-meta-grid,
+.admin-ai-suggestion-grid,
+.admin-ai-edit-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 18px;
+}
+
+.admin-ai-meta-grid label,
+.admin-ai-suggestion-grid label,
+.admin-ai-edit-grid label {
+    display: block;
+    margin-bottom: 7px;
+    color: #89949c;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.admin-ai-meta-grid strong,
+.admin-ai-suggestion-grid strong {
+    display: block;
+    color: #344054;
+    font-size: 12px;
+}
+
+.admin-ai-suggestion-grid > div {
+    padding: 14px;
+    border: 1px solid #e7ebee;
+    border-radius: 8px;
+    background: #fbfcfc;
+}
+
+.admin-ai-suggestion-grid small {
+    display: block;
+    margin-top: 7px;
+    color: #89949c;
+    font-size: 10px;
+}
+
+.admin-ai-description {
+    margin: 20px 0 0;
+    padding-top: 16px;
+    border-top: 1px solid #edf0f2;
+    color: #53616b;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.admin-ai-edit-grid select {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #dce2e6;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #344054;
+    font: inherit;
+    font-size: 12px;
+}
+
+.admin-ai-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.admin-ai-accept-button,
+.admin-ai-confirm-button {
+    background: #e8f0ed;
+    color: #4f6f63;
+}
+
+.admin-ai-modify-button {
+    background: #e9eef1;
+    color: #496273;
+}
+
+.admin-ai-reject-button {
+    background: #faf5f4;
+    color: #8a5b53;
+}
+
+.admin-ai-empty {
+    margin: 18px 0 0;
+    padding: 18px;
+    border: 0;
+    background: #fbfcfc;
+    color: #6e7b84;
+}
+
+.admin-ai-duplicates {
+    display: grid;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.admin-ai-duplicate {
+    padding: 16px;
+    border: 1px solid #e7ebee;
+    border-radius: 8px;
+}
+
+.admin-ai-duplicate-header h4 {
+    font-size: 14px;
+}
+
+.admin-ai-duplicate-header > strong {
+    color: #8a6b2f;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.admin-ai-duplicate-footer {
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid #edf0f2;
+}
+
+.admin-ai-duplicate-footer .admin-ai-actions {
+    margin-top: 0;
+}
+
+@media (max-width: 800px) {
+    .admin-ai-meta-grid,
+    .admin-ai-suggestion-grid,
+    .admin-ai-edit-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .admin-ai-review-header,
+    .admin-ai-card-header,
+    .admin-ai-duplicate-header,
+    .admin-ai-duplicate-footer {
+        flex-direction: column;
+    }
+
+    .admin-ai-meta-grid,
+    .admin-ai-suggestion-grid,
+    .admin-ai-edit-grid {
+        grid-template-columns: 1fr;
+    }
+}

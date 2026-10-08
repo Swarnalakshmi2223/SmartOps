@@ -2,6 +2,25 @@
     width: 100%;
 }
 
+.request-details-page .request-main-card,
+.request-details-page .request-timeline-card,
+.request-details-page .request-comments-card,
+.request-details-page .request-feedback-card {
+    box-shadow: 0 4px 14px rgba(38, 55, 70, 0.04);
+}
+
+.request-details-page .request-action-button,
+.request-details-page .comment-form button,
+.request-details-page .feedback-form button {
+    transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.request-details-page .request-action-button:hover,
+.request-details-page .comment-form button:hover,
+.request-details-page .feedback-form button:hover {
+    box-shadow: 0 5px 12px rgba(52, 75, 92, 0.13);
+}
+
 .request-back-button {
     display: flex;
     align-items: center;
@@ -373,11 +392,184 @@
     background: #faf5f4;
 }
 
+.request-details-inline-error {
+    margin-bottom: 16px;
+    padding: 12px 15px;
+    text-align: left;
+}
+
+.request-details-success {
+    margin-bottom: 16px;
+    padding: 12px 15px;
+    border: 1px solid #dce8e3;
+    border-radius: 8px;
+    background: #f5f9f7;
+    color: #536b61;
+    font-size: 12px;
+}
+
+.attachment-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #edf0f2;
+}
+
+.attachment-box label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #89949c;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.attachment-box a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #496273;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.request-action-button,
+.comment-form button,
+.feedback-form button {
+    margin-top: 18px;
+    padding: 9px 14px;
+    border: 0;
+    border-radius: 6px;
+    background: #496273;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.request-action-button:disabled,
+.comment-form button:disabled,
+.feedback-form button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.request-secondary-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr);
+    gap: 18px;
+    margin-top: 18px;
+}
+
+.request-comments-card,
+.request-feedback-card {
+    background: #fff;
+    border: 1px solid #e1e6ea;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.details-card-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.comments-list,
+.feedback-result {
+    padding: 18px 20px;
+}
+
+.comment-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #edf0f2;
+}
+
+.comment-item:last-child {
+    border-bottom: 0;
+}
+
+.comment-item strong,
+.comment-item span {
+    font-size: 11px;
+}
+
+.comment-item strong {
+    color: #344b5c;
+}
+
+.comment-item span {
+    margin-left: 9px;
+    color: #89949c;
+}
+
+.comment-item p,
+.empty-detail {
+    margin: 7px 0 0;
+    color: #53616b;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.resolution-box a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #496273;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.comment-form,
+.feedback-form {
+    display: flex;
+    flex-direction: column;
+    padding: 0 20px 18px;
+}
+
+.comment-form textarea,
+.feedback-form textarea,
+.feedback-form select {
+    padding: 9px 10px;
+    border: 1px solid #dce2e6;
+    border-radius: 6px;
+    color: #344054;
+    font: inherit;
+    font-size: 12px;
+    resize: vertical;
+}
+
+.feedback-form label {
+    margin-bottom: 7px;
+    color: #89949c;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.feedback-form select {
+    margin-bottom: 10px;
+}
+
+.feedback-result strong {
+    color: #a47d35;
+    letter-spacing: 2px;
+}
+
 /* RESPONSIVE */
 
 @media (max-width: 900px) {
 
     .request-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .request-secondary-grid {
         grid-template-columns: 1fr;
     }
 

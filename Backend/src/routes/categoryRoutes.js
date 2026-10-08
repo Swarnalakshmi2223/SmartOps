@@ -1,4 +1,5 @@
 const express = require("express");
+
 const router = express.Router();
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -9,10 +10,22 @@ const {
     getAllCategories,
     getCategoryById,
     updateCategory,
-    updateCategoryStatus
+    updateCategoryStatus,
+    getActiveCategories
 } = require("../controllers/categoryController");
 
 
+// Get active categories
+// Used by User Create Request form
+router.get(
+    "/active",
+    authMiddleware,
+    roleMiddleware("user", "staff", "admin"),
+    getActiveCategories
+);
+
+
+// Admin creates category
 router.post(
     "/",
     authMiddleware,
@@ -21,6 +34,7 @@ router.post(
 );
 
 
+// Admin gets all categories
 router.get(
     "/",
     authMiddleware,
@@ -29,6 +43,7 @@ router.get(
 );
 
 
+// Admin gets category by ID
 router.get(
     "/:id",
     authMiddleware,
@@ -37,6 +52,7 @@ router.get(
 );
 
 
+// Admin updates category
 router.put(
     "/:id",
     authMiddleware,
@@ -45,6 +61,7 @@ router.put(
 );
 
 
+// Admin activates/deactivates category
 router.patch(
     "/:id/status",
     authMiddleware,
