@@ -4,6 +4,52 @@ const Request = require("../models/Request");
 const Category = require("../models/Category");
 const Department = require("../models/Department");
 
+const allowedPriorities = ["Low", "Medium", "High", "Critical"];
+
+const getFinalReviewValues = ({ request, action, category, department, priority }) => {
+    if (action === "modified") {
+        if (!category || !department || !priority) {
+            return {
+                error: "Category, department and priority are required when modifying"
+            };
+        }
+
+        return { category, department, priority };
+    }
+
+    return {
+        category: request.aiCategory || request.category,
+        department: request.aiDepartment || request.department,
+        priority: request.aiPriority || request.priority
+    };
+};
+
+const validateReviewValues = async ({ category, department, priority }) => {
+    if (!allowedPriorities.includes(priority)) {
+        return "Invalid priority";
+    }
+
+    const categoryExists = await Category.findOne({
+        name: category,
+        isActive: { $ne: false }
+    });
+
+    if (!categoryExists) {
+        return "Selected category is not active";
+    }
+
+    const departmentExists = await Department.findOne({
+        name: department,
+        isActive: { $ne: false }
+    });
+
+    if (!departmentExists) {
+        return "Selected department is not active";
+    }
+
+    return null;
+};
+
 
 // ======================================================
 // Get AI Review Details
@@ -89,100 +135,42 @@ const reviewAISuggestion = async (req, res) => {
             });
         }
 
-        let finalCategory = request.category;
-        let finalDepartment = request.department;
-        let finalPriority = request.priority;
-
-        // ----------------------------------------------
-        // Accept AI suggestion
-        // ----------------------------------------------
-        if (action === "accept") {
-
-            if (request.aiCategory) {
-                finalCategory = request.aiCategory;
-            }
-
-            if (request.aiPriority) {
-                finalPriority = request.aiPriority;
-            }
-
-            if (request.aiDepartment) {
-                finalDepartment = request.aiDepartment;
-            }
-        }
-
-        // ----------------------------------------------
-        // Modify AI suggestion
-        // ----------------------------------------------
-        if (action === "modified") {
-
-            if (!category || !department || !priority) {
-                return res.status(400).json({
-                    message: "Category, department and priority are required when modifying"
-                });
-            }
-
-            finalCategory = category;
-            finalDepartment = department;
-            finalPriority = priority;
-        }
-
-        // Validate priority
-        const allowedPriorities = [
-            "Low",
-            "Medium",
-            "High",
-            "Critical"
-        ];
-
-        if (!allowedPriorities.includes(finalPriority)) {
-            return res.status(400).json({
-                message: "Invalid priority"
-            });
-        }
-
-        // Check category exists and is active
-        const categoryExists = await Category.findOne({
-            name: finalCategory,
-            isActive: { $ne: false }
+        const finalValues = getFinalReviewValues({
+            request,
+            action,
+            category,
+            department,
+            priority
         });
 
-        if (!categoryExists) {
+        if (finalValues.error) {
             return res.status(400).json({
-                message: "Selected category is not active"
+                message: finalValues.error
             });
         }
 
-        const departmentExists = await Department.findOne({
-            name: finalDepartment,
-            isActive: { $ne: false }
-        });
-
-        if (!departmentExists) {
+        const validationError = await validateReviewValues(finalValues);
+        if (validationError) {
             return res.status(400).json({
-                message: "Selected department is not active"
+                message: validationError
             });
         }
 
-        request.category = finalCategory;
-        request.department = finalDepartment;
-        request.priority = finalPriority;
+        request.category = finalValues.category;
+        request.department = finalValues.department;
+        request.priority = finalValues.priority;
 
         request.aiReviewed = true;
         request.aiReviewedBy = req.user.id;
-        request.aiReviewAction =
-            action === "accept"
-                ? "accepted"
-                : "modified";
+        request.aiReviewAction = action === "accept" ? "accepted" : "modified";
         request.aiReviewedAt = new Date();
 
         await request.save();
 
         res.status(200).json({
-            message:
-                action === "accept"
-                    ? "AI suggestion accepted successfully"
-                    : "AI suggestion modified successfully",
+            message: action === "accept"
+                ? "AI suggestion accepted successfully"
+                : "AI suggestion modified successfully",
 
             request
         });

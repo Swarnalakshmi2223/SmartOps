@@ -352,33 +352,18 @@ const Notifications = () => {
                                     ? "notification-card read"
                                     : "notification-card unread"
                             }
-                            onClick={() => openNotification(notification)}
-                            onKeyDown={(event) => {
-                                if (
-                                    (event.key === "Enter" || event.key === " ") &&
-                                    (notification.relatedRequest || notification.relatedTask)
-                                ) {
-                                    event.preventDefault();
-                                    openNotification(notification);
-                                }
-                            }}
-                            role={
-                                notification.relatedRequest || notification.relatedTask
-                                    ? "button"
-                                    : undefined
-                            }
-                            tabIndex={
-                                notification.relatedRequest || notification.relatedTask
-                                    ? 0
-                                    : undefined
-                            }
                         >
 
                             <div className="notification-icon">
                                 <FiBell />
                             </div>
 
-                            <div className="notification-content">
+                            {notification.relatedRequest || notification.relatedTask ? (
+                            <button
+                                type="button"
+                                className="notification-content notification-open"
+                                onClick={() => openNotification(notification)}
+                            >
 
                                 <div className="notification-top">
 
@@ -434,7 +419,12 @@ const Notifications = () => {
 
                                 </div>
 
+                            </button>
+                            ) : (
+                            <div className="notification-content">
+
                             </div>
+                            )}
 
                             <div className="notification-actions">
 

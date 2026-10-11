@@ -1,5 +1,6 @@
 const express = require("express");
-const fs = require("fs");
+const fs = require("node:fs");
+const mongoose = require("mongoose");
 
 
 const { 
@@ -28,6 +29,18 @@ const upload = require("../middleware/uploadMiddleware");
 
 const router = express.Router();
 
+const validateRequestId = (req, res, next) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return res.status(400).json({
+            message: "Invalid request ID"
+        });
+    }
+
+    next();
+};
+
+router.param("id", validateRequestId);
+
 const handleRequestUpload = (req, res, next) => {
     upload.single("attachment")(req, res, (error) => {
         if (error) {
@@ -38,7 +51,7 @@ const handleRequestUpload = (req, res, next) => {
             });
         }
 
-        if (req.file && req.file.size === 0) {
+        if (req.file?.size === 0) {
             fs.unlink(req.file.path, () => {});
 
             return res.status(400).json({
@@ -65,6 +78,11 @@ router.get("/my",authMiddleware,
                  roleMiddleware("user"),
                  getMyRequests);
 
+// Keep static paths before /:id so "assigned" cannot be treated as a request id.
+router.get("/assigned", authMiddleware,
+                    roleMiddleware("staff"),
+                    getAssignedRequests);
+
 router.post("/:id/comments",authMiddleware,
                             addComment);
 
@@ -78,11 +96,6 @@ router.get("/:id/attachment", authMiddleware,
 router.get("/:id/evidence", authMiddleware,
                               roleMiddleware("user", "staff", "admin"),
                               getResolutionEvidence);
-
-// Keep static paths before /:id so "assigned" cannot be treated as a request id.
-router.get("/assigned", authMiddleware,
-                    roleMiddleware("staff"),
-                    getAssignedRequests);
 
 router.get("/:id", authMiddleware,
                     roleMiddleware("user", "staff", "admin"),

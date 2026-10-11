@@ -209,18 +209,20 @@ const AdminReports = () => {
                         onSubmit={handleDateReport}
                     >
                         <div>
-                            <label>From</label>
+                            <label htmlFor="report-date-from">From</label>
                             <input
                                 type="date"
+                                id="report-date-from"
                                 value={dateFrom}
                                 onChange={(e) => setDateFrom(e.target.value)}
                             />
                         </div>
 
                         <div>
-                            <label>To</label>
+                            <label htmlFor="report-date-to">To</label>
                             <input
                                 type="date"
+                                id="report-date-to"
                                 value={dateTo}
                                 onChange={(e) => setDateTo(e.target.value)}
                             />

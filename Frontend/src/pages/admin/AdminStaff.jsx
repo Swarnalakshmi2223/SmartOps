@@ -9,6 +9,14 @@ import {
 
 import api from "../../services/api";
 
+const getStaffSubmitLabel = (saving, editingStaff) => {
+    if (saving) {
+        return "Saving...";
+    }
+
+    return editingStaff ? "Update Staff" : "Create Staff";
+};
+
 import "./AdminStaff.css";
 
 const AdminStaff = () => {
@@ -491,11 +499,12 @@ const AdminStaff = () => {
 
                             <div className="admin-staff-modal-body">
 
-                                <label>
+                                <label htmlFor="staff-name">
                                     Name
                                 </label>
 
                                 <input
+                                    id="staff-name"
                                     type="text"
                                     name="name"
                                     value={formData.name}
@@ -504,11 +513,12 @@ const AdminStaff = () => {
                                     required
                                 />
 
-                                <label>
+                                <label htmlFor="staff-email">
                                     Email
                                 </label>
 
                                 <input
+                                    id="staff-email"
                                     type="email"
                                     name="email"
                                     value={formData.email}
@@ -517,11 +527,12 @@ const AdminStaff = () => {
                                     required
                                 />
 
-                                <label>
+                                <label htmlFor="staff-phone">
                                     Phone Number
                                 </label>
 
                                 <input
+                                    id="staff-phone"
                                     type="tel"
                                     name="phone"
                                     value={formData.phone}
@@ -529,11 +540,12 @@ const AdminStaff = () => {
                                     placeholder="Enter phone number"
                                 />
 
-                                <label>
+                                <label htmlFor="staff-department">
                                     Department
                                 </label>
 
                                 <select
+                                    id="staff-department"
                                     name="department"
                                     value={formData.department}
                                     onChange={handleChange}
@@ -558,11 +570,12 @@ const AdminStaff = () => {
                                 {!editingStaff && (
 
                                     <>
-                                        <label>
+                                        <label htmlFor="staff-password">
                                             Password
                                         </label>
 
                                         <input
+                                            id="staff-password"
                                             type="password"
                                             name="password"
                                             value={
@@ -576,11 +589,12 @@ const AdminStaff = () => {
                                             minLength={6}
                                         />
 
-                                        <label>
+                                        <label htmlFor="staff-confirm-password">
                                             Confirm Password
                                         </label>
 
                                         <input
+                                            id="staff-confirm-password"
                                             type="password"
                                             name="confirmPassword"
                                             value={formData.confirmPassword}
@@ -610,11 +624,7 @@ const AdminStaff = () => {
                                     className="admin-staff-save"
                                     disabled={saving}
                                 >
-                                    {saving
-                                        ? "Saving..."
-                                        : editingStaff
-                                            ? "Update Staff"
-                                            : "Create Staff"}
+                                    {getStaffSubmitLabel(saving, editingStaff)}
                                 </button>
 
                             </div>

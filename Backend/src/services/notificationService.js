@@ -93,7 +93,7 @@ const notifyActiveAdministrators = async ({
 
         const notifications = [];
         for (const admin of admins) {
-            if (actorId && admin._id.toString() === actorId.toString()) {
+            if (admin._id.toString() === actorId?.toString()) {
                 continue;
             }
 

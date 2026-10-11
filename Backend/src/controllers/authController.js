@@ -2,6 +2,7 @@ const User = require("../models/User");
 const Department = require("../models/Department");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { isValidEmail } = require("../utils/validation");
 
 const isStrongPassword = (password) => (
     typeof password === "string" &&
@@ -10,11 +11,6 @@ const isStrongPassword = (password) => (
     /[A-Z]/.test(password) &&
     /\d/.test(password) &&
     /[^A-Za-z0-9]/.test(password)
-);
-
-const isValidEmail = (email) => (
-    typeof email === "string" &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 );
 
 const normalizePhone = (phone) => (

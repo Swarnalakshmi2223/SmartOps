@@ -162,17 +162,19 @@ const AdminCategories = () => {
                             {editingId ? "Edit category" : "New category"}
                         </h3>
 
-                        <label>Name</label>
+                        <label htmlFor="category-name">Name</label>
                         <input
                             type="text"
+                            id="category-name"
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
                             placeholder="e.g. Network issue"
                         />
 
-                        <label>Description</label>
+                        <label htmlFor="category-description">Description</label>
                         <textarea
+                            id="category-description"
                             name="description"
                             rows="3"
                             value={formData.description}

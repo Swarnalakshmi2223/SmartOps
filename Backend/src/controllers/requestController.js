@@ -1,8 +1,8 @@
 const Request = require("../models/Request");
 const User = require("../models/User");
 const mongoose = require("mongoose");
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 const createAuditLog = require("../utils/auditLogger");
 const {
     analyzeRequest,
@@ -14,6 +14,7 @@ const {
     notifyActiveAdministrators
 } = require("../services/notificationService");
 const { sendEmail } = require("../services/emailService");
+const { isValidEmail } = require("../utils/validation");
 const {
     emitRequestEvent
 } = require("../socket/socketServer");
@@ -22,11 +23,11 @@ const confirmationEmailFailureMessage =
     "Your request was created successfully, but the confirmation email could not be sent.";
 
 const escapeHtml = (value) => String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 
 const toPublicRequest = (request) => {
     const publicRequest = request.toObject();
@@ -36,6 +37,176 @@ const toPublicRequest = (request) => {
     delete publicRequest.confirmationEmailMessageId;
     delete publicRequest.confirmationEmailAttemptedAt;
     return publicRequest;
+};
+
+const findExistingRequest = async (creationKey, userId) => {
+    if (!creationKey || creationKey.length > 200) {
+        return null;
+    }
+
+    const existingRequest = await Request.findOne({ creationKey })
+        .select(
+            "+creationKey +confirmationEmailSent +confirmationEmailMessageId"
+        );
+
+    if (!existingRequest) {
+        return null;
+    }
+
+    if (existingRequest.createdBy.toString() !== userId) {
+        return { conflict: true };
+    }
+
+    return { request: existingRequest };
+};
+
+const buildRequest = ({ req, title, description, category, priority, department, location, creationKey }) => (
+    new Request({
+        title,
+        description,
+        category,
+        priority: priority || "Medium",
+        department: department || null,
+        location: location || null,
+        attachment: req.file ? req.file.filename : null,
+        attachmentOriginalName: req.file ? req.file.originalname : null,
+        attachmentMimeType: req.file ? req.file.mimetype : null,
+        attachmentSize: req.file ? req.file.size : null,
+        createdBy: req.user.id,
+        ...(creationKey && creationKey.length <= 200
+            ? { creationKey }
+            : {}),
+        statusHistory: [
+            {
+                status: "Pending",
+                changedBy: req.user.id,
+                changedAt: new Date(),
+                comment: "Request created"
+            }
+        ]
+    })
+);
+
+const applyAiAnalysis = async (request, title, description) => {
+    try {
+        const analysis = analyzeRequest({ title, description });
+
+        request.aiCategory = analysis.category;
+        request.aiDepartment = analysis.department;
+        request.aiPriority = analysis.priority;
+        request.aiCategoryScore = analysis.categoryScore;
+        request.aiDepartmentScore = analysis.departmentScore;
+        request.aiPriorityScore = analysis.priorityScore;
+        request.aiAnalyzedAt = new Date();
+
+        const existingRequests = await Request.find()
+            .select("title description")
+            .sort({ createdAt: -1 })
+            .limit(500)
+            .lean();
+
+        const duplicates = await findDuplicateRequests(
+            { title, description },
+            existingRequests
+        );
+
+        request.aiDuplicates = duplicates
+            .slice(0, 5)
+            .map((item) => ({
+                requestId: item.requestId,
+                title: item.title,
+                similarity: item.similarity
+            }));
+    } catch (aiError) {
+        console.error("AI analysis skipped:", aiError.message);
+    }
+};
+
+const findRequestCreator = async (userId) => {
+    try {
+        return await User.findById(userId)
+            .select("name email")
+            .lean();
+    } catch (creatorError) {
+        console.error("Request creator lookup failed:", creatorError.message);
+        return null;
+    }
+};
+
+const sendCreationEmail = async (request, requestCreator) => {
+    let emailSent = false;
+    let emailMessage = confirmationEmailFailureMessage;
+
+    try {
+        const recipientEmail = requestCreator?.email?.trim();
+        const hasValidRecipientEmail = isValidEmail(recipientEmail);
+
+        console.log("Request creation email event:", {
+            requestId: request._id.toString(),
+            recipientEmailPresent: Boolean(recipientEmail),
+            recipientEmailValid: hasValidRecipientEmail
+        });
+
+        if (!hasValidRecipientEmail) {
+            console.warn("Request creation email skipped: creator email is unavailable or invalid", {
+                requestId: request._id.toString()
+            });
+        } else {
+            const requestUrl = `${process.env.FRONTEND_ORIGIN || "http://localhost:5173"}/user/requests/${request._id}`;
+            const requestNumber = request.requestNumber || request._id;
+            const emailResult = await sendEmail({
+                to: recipientEmail,
+                subject: `SmartOps request created: ${request.title}`,
+                text: `Your SmartOps service request has been created successfully.\n\nRequest number: ${requestNumber}\nTitle: ${request.title}\nCategory: ${request.category}\nPriority: ${request.priority}\nCurrent status: ${request.status}\n\nTrack your request in SmartOps: ${requestUrl}`,
+                html: `
+                        <h2>SmartOps request created</h2>
+                        <p>Your service request has been created successfully.</p>
+                        <p><strong>Request number:</strong> ${escapeHtml(requestNumber)}</p>
+                        <p><strong>Title:</strong> ${escapeHtml(request.title)}</p>
+                        <p><strong>Category:</strong> ${escapeHtml(request.category)}</p>
+                        <p><strong>Priority:</strong> ${escapeHtml(request.priority)}</p>
+                        <p><strong>Current status:</strong> ${escapeHtml(request.status)}</p>
+                        <p><a href="${escapeHtml(requestUrl)}">Track this request in SmartOps</a></p>
+                    `
+            });
+
+            emailSent = Boolean(emailResult.success);
+            emailMessage = emailSent
+                ? "Your request was created successfully, and the confirmation email was sent."
+                : confirmationEmailFailureMessage;
+            request.confirmationEmailMessageId = emailResult.messageId || null;
+
+            console.log("Request creation email result:", {
+                requestId: request._id.toString(),
+                success: emailResult.success
+            });
+        }
+    } catch (emailError) {
+        console.error("Request creation email flow failed:", {
+            requestId: request._id.toString(),
+            message: emailError.message
+        });
+    }
+
+    return { emailSent, emailMessage };
+};
+
+const saveRequestWithUniqueNumber = async (request) => {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+            await request.save();
+            return;
+        } catch (error) {
+            const duplicateRequestNumber = error?.code === 11000 &&
+                error?.keyPattern?.requestNumber;
+
+            if (!duplicateRequestNumber || attempt === 2) {
+                throw error;
+            }
+
+            request.requestNumber = undefined;
+        }
+    }
 };
 
 const createRequest = async (req, res) => {
@@ -59,105 +230,46 @@ const createRequest = async (req, res) => {
             req.headers["x-idempotency-key"] || ""
         ).trim();
 
-        if (creationKey && creationKey.length <= 200) {
-            const existingRequest = await Request.findOne({ creationKey })
-                .select(
-                    "+creationKey +confirmationEmailSent +confirmationEmailMessageId"
-                );
+        const existingResult = await findExistingRequest(
+            creationKey,
+            req.user.id
+        );
 
-            if (existingRequest) {
-                if (existingRequest.createdBy.toString() !== req.user.id) {
-                    return res.status(409).json({
-                        message: "This request submission key has already been used"
-                    });
-                }
-
-                return res.status(200).json({
-                    message: existingRequest.confirmationEmailSent
-                        ? "Your request was created successfully, and the confirmation email was sent."
-                        : confirmationEmailFailureMessage,
-                    emailSent: existingRequest.confirmationEmailSent,
-                    duplicateSubmission: true,
-                    request: toPublicRequest(existingRequest)
-                });
-            }
+        if (existingResult?.conflict) {
+            return res.status(409).json({
+                message: "This request submission key has already been used"
+            });
         }
 
-        const newRequest = new Request({
+        if (existingResult?.request) {
+            const existingRequest = existingResult.request;
+            return res.status(200).json({
+                message: existingRequest.confirmationEmailSent
+                    ? "Your request was created successfully, and the confirmation email was sent."
+                    : confirmationEmailFailureMessage,
+                emailSent: existingRequest.confirmationEmailSent,
+                duplicateSubmission: true,
+                request: toPublicRequest(existingRequest)
+            });
+        }
+
+        const newRequest = buildRequest({
+            req,
             title,
             description,
             category,
-            priority: priority || "Medium",
-            department: department || null,
-            location: location || null,
-            attachment: req.file ? req.file.filename : null,
-            attachmentOriginalName: req.file ? req.file.originalname : null,
-            attachmentMimeType: req.file ? req.file.mimetype : null,
-            attachmentSize: req.file ? req.file.size : null,
-            createdBy: req.user.id,
-            ...(creationKey && creationKey.length <= 200
-                ? { creationKey }
-                : {}),
-
-            // Initial request status history
-            statusHistory: [
-                {
-                    status: "Pending",
-                    changedBy: req.user.id,
-                    changedAt: new Date(),
-                    comment: "Request created"
-                }
-            ]
+            priority,
+            department,
+            location,
+            creationKey
         });
 
         // AI assistance: must never stop the request from being saved
-        try {
-            const analysis = analyzeRequest({
-                title,
-                description
-            });
+        await applyAiAnalysis(newRequest, title, description);
 
-            newRequest.aiCategory = analysis.category;
-            newRequest.aiDepartment = analysis.department;
-            newRequest.aiPriority = analysis.priority;
-            newRequest.aiCategoryScore = analysis.categoryScore;
-            newRequest.aiDepartmentScore = analysis.departmentScore;
-            newRequest.aiPriorityScore = analysis.priorityScore;
-            newRequest.aiAnalyzedAt = new Date();
+        await saveRequestWithUniqueNumber(newRequest);
 
-            const existingRequests = await Request.find()
-                .select("title description")
-                .sort({ createdAt: -1 })
-                .limit(500)
-                .lean();
-
-            const duplicates = await findDuplicateRequests(
-                { title, description },
-                existingRequests
-            );
-
-            newRequest.aiDuplicates = duplicates
-                .slice(0, 5)
-                .map((item) => ({
-                    requestId: item.requestId,
-                    title: item.title,
-                    similarity: item.similarity
-                }));
-
-        } catch (aiError) {
-            console.error("AI analysis skipped:", aiError.message);
-        }
-
-        await newRequest.save();
-
-        let requestCreator = null;
-        try {
-            requestCreator = await User.findById(req.user.id)
-                .select("name email")
-                .lean();
-        } catch (creatorError) {
-            console.error("Request creator lookup failed:", creatorError.message);
-        }
+        const requestCreator = await findRequestCreator(req.user.id);
 
         await notifyActiveAdministrators({
             request: newRequest,
@@ -168,62 +280,10 @@ const createRequest = async (req, res) => {
 
         // Send the request-creation email only after the request is safely stored.
         // Email delivery must not turn a successful request creation into a failure.
-        let emailSent = false;
-        let emailMessage = confirmationEmailFailureMessage;
-
-        try {
-            const recipientEmail = requestCreator?.email?.trim();
-            const hasValidRecipientEmail = Boolean(
-                recipientEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)
-            );
-
-            console.log("Request creation email event:", {
-                requestId: newRequest._id.toString(),
-                recipientEmailPresent: Boolean(recipientEmail),
-                recipientEmailValid: hasValidRecipientEmail
-            });
-
-            if (!hasValidRecipientEmail) {
-                console.warn("Request creation email skipped: creator email is unavailable or invalid", {
-                    requestId: newRequest._id.toString()
-                });
-            } else {
-                const requestUrl = `${process.env.FRONTEND_ORIGIN || "http://localhost:5173"}/user/requests/${newRequest._id}`;
-                const requestNumber = newRequest.requestNumber || newRequest._id;
-                const emailResult = await sendEmail({
-                    to: recipientEmail,
-                    subject: `SmartOps request created: ${newRequest.title}`,
-                    text: `Your SmartOps service request has been created successfully.\n\nRequest number: ${requestNumber}\nTitle: ${newRequest.title}\nCategory: ${newRequest.category}\nPriority: ${newRequest.priority}\nCurrent status: ${newRequest.status}\n\nTrack your request in SmartOps: ${requestUrl}`,
-                    html: `
-                        <h2>SmartOps request created</h2>
-                        <p>Your service request has been created successfully.</p>
-                        <p><strong>Request number:</strong> ${escapeHtml(requestNumber)}</p>
-                        <p><strong>Title:</strong> ${escapeHtml(newRequest.title)}</p>
-                        <p><strong>Category:</strong> ${escapeHtml(newRequest.category)}</p>
-                        <p><strong>Priority:</strong> ${escapeHtml(newRequest.priority)}</p>
-                        <p><strong>Current status:</strong> ${escapeHtml(newRequest.status)}</p>
-                        <p><a href="${escapeHtml(requestUrl)}">Track this request in SmartOps</a></p>
-                    `
-                });
-
-                emailSent = Boolean(emailResult.success);
-                emailMessage = emailSent
-                    ? "Your request was created successfully, and the confirmation email was sent."
-                    : confirmationEmailFailureMessage;
-
-                newRequest.confirmationEmailMessageId = emailResult.messageId || null;
-
-                console.log("Request creation email result:", {
-                    requestId: newRequest._id.toString(),
-                    success: emailResult.success
-                });
-            }
-        } catch (emailError) {
-            console.error("Request creation email flow failed:", {
-                requestId: newRequest._id.toString(),
-                message: emailError.message
-            });
-        }
+        const { emailSent, emailMessage } = await sendCreationEmail(
+            newRequest,
+            requestCreator
+        );
 
         newRequest.confirmationEmailSent = emailSent;
         newRequest.confirmationEmailAttemptedAt = new Date();
@@ -339,7 +399,7 @@ const isValidStoredFilename = (filename) => {
     return (
         typeof filename === "string" &&
         path.basename(filename) === filename &&
-        /^[a-zA-Z0-9_-]+\.(jpg|jpeg|png|webp|pdf|doc|docx)$/i.test(
+        /^[a-z0-9_-]+\.(jpg|jpeg|png|webp|pdf|doc|docx)$/i.test(
             filename
         )
     );
@@ -484,6 +544,58 @@ const updateRequest = async (req, res) => {
     }
 };
 
+const validStatusTransitions = {
+    Pending: ["Assigned"],
+    Assigned: ["In Progress"],
+    "In Progress": ["Resolved"],
+    Resolved: ["Closed"],
+    Closed: []
+};
+
+const getStatusPermissionError = (request, user, status) => {
+    if (user.role === "user") {
+        if (request.createdBy.toString() !== user.id) {
+            return "You do not have permission to update this request";
+        }
+
+        if (status !== "Closed") {
+            return "Users can only close their own resolved requests";
+        }
+    }
+
+    if (user.role === "staff") {
+        const isAssignedToUser = request.assignedTo &&
+            request.assignedTo.toString() === user.id;
+
+        if (!isAssignedToUser) {
+            return "You are not assigned to this request";
+        }
+
+        if (!["In Progress", "Resolved"].includes(status)) {
+            return "Staff can only start or resolve assigned requests";
+        }
+    }
+
+    if (status === "Closed" && user.role !== "user") {
+        return "Only the request owner can close a request";
+    }
+
+    return null;
+};
+
+const appendStatusHistory = (request, status, userId) => {
+    const oldStatus = request.status;
+    request.status = status;
+    request.statusHistory = request.statusHistory || [];
+    request.statusHistory.push({
+        status,
+        changedBy: userId,
+        changedAt: new Date(),
+        comment: `Request status changed from ${oldStatus} to ${status}`
+    });
+    return oldStatus;
+};
+
 
 const updateRequestStatus = async (req, res) => {
     try {
@@ -513,78 +625,25 @@ const updateRequestStatus = async (req, res) => {
             });
         }
 
-        const validTransitions = {
-            Pending: ["Assigned"],
-            Assigned: ["In Progress"],
-            "In Progress": ["Resolved"],
-            Resolved: ["Closed"],
-            Closed: []
-        };
-
-        if (!validTransitions[request.status]?.includes(status)) {
+        if (!validStatusTransitions[request.status]?.includes(status)) {
             return res.status(400).json({
                 message: `Invalid status transition from ${request.status} to ${status}`
             });
         }
 
-        // USER can update only their own request
-        if (req.user.role === "user") {
+        const permissionError = getStatusPermissionError(
+            request,
+            req.user,
+            status
+        );
 
-            if (request.createdBy.toString() !== req.user.id) {
-                return res.status(403).json({
-                    message: "You do not have permission to update this request"
-                });
-            }
-
-            if (status !== "Closed") {
-                return res.status(403).json({
-                    message: "Users can only close their own resolved requests"
-                });
-            }
-
-        }
-
-        // STAFF can update only requests assigned to them
-        if (req.user.role === "staff") {
-
-            if (
-                !request.assignedTo ||
-                request.assignedTo.toString() !== req.user.id
-            ) {
-                return res.status(403).json({
-                    message: "You are not assigned to this request"
-                });
-            }
-
-            if (!["In Progress", "Resolved"].includes(status)) {
-                return res.status(403).json({
-                    message: "Staff can only start or resolve assigned requests"
-                });
-            }
-
-        }
-
-        if (status === "Closed" && req.user.role !== "user") {
+        if (permissionError) {
             return res.status(403).json({
-                message: "Only the request owner can close a request"
+                message: permissionError
             });
         }
 
-        // ADMIN can update any request
-
-         const oldStatus = request.status;
-        request.status = status;
-
-        if (!request.statusHistory) {
-            request.statusHistory = [];
-        }
-
-        request.statusHistory.push({
-            status,
-            changedBy: req.user.id,
-            changedAt: new Date(),
-            comment: `Request status changed from ${oldStatus} to ${status}`
-        });
+        const oldStatus = appendStatusHistory(request, status, req.user.id);
 
         await request.save();
 
@@ -818,7 +877,7 @@ const resolveRequest = async (req, res) => {
         const { id } = req.params;
         const { resolution } = req.body;
 
-        if (!resolution || !resolution.trim()) {
+        if (!resolution?.trim()) {
             return res.status(400).json({
                 message: "Resolution is required"
             });
@@ -1065,7 +1124,7 @@ const addComment = async (req, res) => {
         const { id } = req.params;
         const { text } = req.body;
 
-        if (!text || !text.trim()) {
+        if (!text?.trim()) {
             return res.status(400).json({
                 message: "Comment text is required"
             });

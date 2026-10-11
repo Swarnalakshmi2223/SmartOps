@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
     FiPlay,
     FiCheckCircle,
-    FiClock,
     FiFileText
 } from "react-icons/fi";
 

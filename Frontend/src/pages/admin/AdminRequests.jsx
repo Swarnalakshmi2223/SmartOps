@@ -260,22 +260,6 @@ const AdminRequests = () => {
         }
     };
 
-    const formatDate = (date) => {
-
-        if (!date) {
-            return "-";
-        }
-
-        return new Date(date).toLocaleDateString(
-            "en-IN",
-            {
-                day: "2-digit",
-                month: "short",
-                year: "numeric"
-            }
-        );
-    };
-
     if (loading) {
 
         return (
@@ -690,11 +674,12 @@ const AdminRequests = () => {
 
                             </div>
 
-                            <label>
+                            <label htmlFor="admin-selected-staff">
                                 Select Staff Member
                             </label>
 
                             <select
+                                id="admin-selected-staff"
                                 value={selectedStaff}
                                 onChange={(event) =>
                                     setSelectedStaff(

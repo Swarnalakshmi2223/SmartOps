@@ -92,7 +92,7 @@
 
 .admin-ai-review-message {
     background: #ffffff;
-    color: #6e7b84;
+    color: #53616b;
     text-align: center;
 }
 
@@ -142,7 +142,7 @@
 .admin-ai-review-status.pending,
 .admin-ai-decision.pending {
     background: #f4efe3;
-    color: #8a6b2f;
+    color: #6b4f18;
 }
 
 .admin-ai-review-status.reviewed,
@@ -166,7 +166,9 @@
 }
 
 .admin-ai-meta-grid label,
+.admin-ai-meta-grid .admin-ai-field-label,
 .admin-ai-suggestion-grid label,
+.admin-ai-suggestion-grid .admin-ai-field-label,
 .admin-ai-edit-grid label {
     display: block;
     margin-bottom: 7px;
@@ -246,7 +248,7 @@
     padding: 18px;
     border: 0;
     background: #fbfcfc;
-    color: #6e7b84;
+    color: #53616b;
 }
 
 .admin-ai-duplicates {

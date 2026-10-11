@@ -64,21 +64,24 @@ const AdminUsers = () => {
                         <tbody>
                             {users.filter((account) => account.role === "user").map((account) => {
                                 const isCurrent = account._id === currentUser?.id || account._id === currentUser?._id;
+                                const isInactive = account.isActive === false;
+                                const statusLabel = isInactive ? "Inactive" : "Active";
+                                const actionLabel = isInactive ? "Activate account" : "Deactivate account";
                                 return (
                                     <tr key={account._id}>
                                         <td><strong>{account.name}</strong></td>
                                         <td>{account.email}</td>
                                         <td>{account.role}</td>
-                                        <td><span className={account.isActive === false ? "staff-inactive" : "staff-active"}>{account.isActive === false ? "Inactive" : "Active"}</span></td>
+                                        <td><span className={isInactive ? "staff-inactive" : "staff-active"}>{statusLabel}</span></td>
                                         <td>
                                             <button
                                                 type="button"
-                                                className={account.isActive === false ? "staff-activate-button" : "staff-deactivate-button"}
+                                                className={isInactive ? "staff-activate-button" : "staff-deactivate-button"}
                                                 disabled={isCurrent || actionId === account._id}
-                                                title={isCurrent ? "You cannot deactivate your own account" : account.isActive === false ? "Activate account" : "Deactivate account"}
+                                                title={isCurrent ? "You cannot deactivate your own account" : actionLabel}
                                                 onClick={() => toggleStatus(account)}
                                             >
-                                                {account.isActive === false ? <FiUserCheck /> : <FiUserX />}
+                                                {isInactive ? <FiUserCheck /> : <FiUserX />}
                                             </button>
                                         </td>
                                     </tr>

@@ -25,6 +25,8 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: flex-start;
+    text-align: left;
     padding: 64px;
     background: linear-gradient(145deg, #16365c 0%, #1f4d7d 100%);
 }
@@ -288,18 +290,6 @@
     }
 }
 
-
-/* ===== Register left panel: paste at the bottom of Register.css ===== */
-
-/* ===== Register left panel: paste at the bottom of Register.css ===== */
-
-.register-brand-section {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-    text-align: left;
-}
 
 .register-page .register-brand-section .so-logo {
     gap: 16px;

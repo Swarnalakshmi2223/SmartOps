@@ -118,27 +118,30 @@ const Settings = () => {
                         <div className="stg-error">{profileError}</div>
                     )}
 
-                    <label className="stg-label">Full name</label>
+                    <label className="stg-label" htmlFor="settings-name">Full name</label>
                     <input
                         className="stg-input"
                         type="text"
+                        id="settings-name"
                         name="name"
                         value={profileData.name}
                         onChange={handleProfileChange}
                     />
 
-                    <label className="stg-label">Email address</label>
+                    <label className="stg-label" htmlFor="settings-email">Email address</label>
                     <input
                         className="stg-input"
                         type="email"
+                        id="settings-email"
                         name="email"
                         value={profileData.email}
                         onChange={handleProfileChange}
                     />
 
-                    <label className="stg-label stg-label--readonly">Role</label>
+                    <label className="stg-label stg-label--readonly" htmlFor="settings-role">Role</label>
                     <input
                         className="stg-input"
+                        id="settings-role"
                         type="text"
                         value={user?.role || ""}
                         disabled
@@ -168,28 +171,31 @@ const Settings = () => {
                         <div className="stg-error">{passwordError}</div>
                     )}
 
-                    <label className="stg-label">Current password</label>
+                    <label className="stg-label" htmlFor="settings-current-password">Current password</label>
                     <input
                         className="stg-input"
                         type="password"
+                        id="settings-current-password"
                         name="currentPassword"
                         value={passwordData.currentPassword}
                         onChange={handlePasswordChange}
                     />
 
-                    <label className="stg-label">New password</label>
+                    <label className="stg-label" htmlFor="settings-new-password">New password</label>
                     <input
                         className="stg-input"
                         type="password"
+                        id="settings-new-password"
                         name="newPassword"
                         value={passwordData.newPassword}
                         onChange={handlePasswordChange}
                     />
 
-                    <label className="stg-label">Confirm new password</label>
+                    <label className="stg-label" htmlFor="settings-confirm-password">Confirm new password</label>
                     <input
                         className="stg-input"
                         type="password"
+                        id="settings-confirm-password"
                         name="confirmPassword"
                         value={passwordData.confirmPassword}
                         onChange={handlePasswordChange}

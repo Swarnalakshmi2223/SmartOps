@@ -6,7 +6,7 @@ const {
 
 
 const escapeRegex = (value) =>
-    value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    value.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 
 // Whole-word match; allows simple plurals (printer -> printers)
 const containsKeyword = (text, keyword) => {

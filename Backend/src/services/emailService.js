@@ -12,12 +12,16 @@ const transporter = nodemailer.createTransport({
 const sanitizeErrorMessage = (error) => String(
     error?.message || "Email operation failed"
 )
-    .replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g, "[redacted-email]")
+    .split(/\s+/)
+    .map((token) => token.includes("@") && token.includes(".")
+        ? "[redacted-email]"
+        : token)
+    .join(" ")
     .replace(/(pass(word)?\s*[=:]\s*)[^\s]+/gi, "$1[redacted]");
 
-const sendEmail = async ({ to, subject, text, html }) => {
+const sendEmail = async ({ to, subject, text, html }, mailTransport = transporter) => {
     try {
-        const info = await transporter.sendMail({
+        const info = await mailTransport.sendMail({
             from: process.env.MAIL_FROM,
             to,
             subject,

@@ -69,12 +69,13 @@ admin UI to create active departments, categories, and staff accounts.
 From `Backend`:
 
 ```powershell
+$env:TEST_EMAIL_TO = "your-test-mailbox@example.com"
 node testEmail.js
 ```
 
-Update the receiving address in the local test script before running it. A
-request-created email is sent to the authenticated request creator after the
-request is saved successfully.
+The recipient is supplied through `TEST_EMAIL_TO`; do not place a real mailbox
+or SMTP credential in the script. A request-created email is sent to the
+authenticated request creator after the request is saved successfully.
 
 ## Frontend setup
 

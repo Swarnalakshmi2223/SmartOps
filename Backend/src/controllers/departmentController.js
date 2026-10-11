@@ -3,6 +3,23 @@ const User = require("../models/User");
 const Request = require("../models/Request");
 const createAuditLog = require("../utils/auditLogger");
 
+const formatReferenceCount = (count, singularLabel) =>
+    `${count} ${singularLabel}${count === 1 ? "" : "s"}`;
+
+const getDepartmentReferenceMessage = (requestCount, userCount) => {
+    const requestReference = formatReferenceCount(
+        requestCount,
+        "historical request"
+    );
+
+    if (!userCount) {
+        return `Department cannot be permanently deleted because it is referenced by ${requestReference}. Deactivate it instead.`;
+    }
+
+    const userReference = formatReferenceCount(userCount, "user account");
+    return `Department cannot be permanently deleted because it is referenced by ${requestReference} and ${userReference}. Deactivate it instead.`;
+};
+
 // Create Department
 const createDepartment = async (req, res) => {
     try {
@@ -222,7 +239,7 @@ const deleteDepartment = async (req, res) => {
 
         if (requestCount > 0 || userCount > 0) {
             return res.status(409).json({
-                message: `Department cannot be permanently deleted because it is referenced by ${requestCount} historical request${requestCount === 1 ? "" : "s"}${userCount ? ` and ${userCount} user account${userCount === 1 ? "" : "s"}` : ""}. Deactivate it instead.`
+                message: getDepartmentReferenceMessage(requestCount, userCount)
             });
         }
 

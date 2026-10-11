@@ -23,6 +23,193 @@ const statusOrder = [
     "Closed"
 ];
 
+const getTimelineState = (index, currentIndex) => {
+    if (index < currentIndex) {
+        return "completed";
+    }
+
+    if (index === currentIndex) {
+        return "current";
+    }
+
+    return "upcoming";
+};
+
+const TimelineIcon = ({ state }) => {
+    if (state === "completed") {
+        return <FiCheckCircle />;
+    }
+
+    if (state === "current") {
+        return <FiClock />;
+    }
+
+    return <span />;
+};
+
+const StatusTimeline = ({ request, formatDate }) => {
+    const currentIndex = statusOrder.indexOf(request.status);
+
+    return (
+        <div className="request-timeline-card">
+            <div className="details-card-header">
+                <h3>Status History</h3>
+            </div>
+
+            <div className="timeline">
+                {statusOrder.map((step, index) => {
+                    const state = getTimelineState(index, currentIndex);
+                    const historyItem = (request.statusHistory || [])
+                        .find((item) => item.status === step);
+
+                    return (
+                        <div
+                            className={`timeline-item ${state}`}
+                            key={step}
+                        >
+                            <div className="timeline-icon">
+                                <TimelineIcon state={state} />
+                            </div>
+
+                            <div className="timeline-content">
+                                <strong>{step}</strong>
+
+                                {historyItem && (
+                                    <p>
+                                        {formatDate(historyItem.changedAt, true)}
+                                        {historyItem.changedBy?.name &&
+                                            ` · ${historyItem.changedBy.name}`}
+                                    </p>
+                                )}
+
+                                {index < statusOrder.length - 1 && (
+                                    <div className="timeline-line" />
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
+const CommentsCard = ({
+    comments,
+    commentsLoading,
+    commentsError,
+    canComment,
+    comment,
+    commentLoading,
+    onCommentChange,
+    onSubmit,
+    formatDate
+}) => {
+    let commentsContent;
+
+    if (commentsLoading) {
+        commentsContent = <p className="empty-detail">Loading comments...</p>;
+    } else if (commentsError) {
+        commentsContent = (
+            <p className="empty-detail comment-error">{commentsError}</p>
+        );
+    } else if (comments.length === 0) {
+        commentsContent = <p className="empty-detail">No comments yet.</p>;
+    } else {
+        commentsContent = comments.map((item, index) => (
+            <div
+                className="comment-item"
+                key={item._id || `${item.createdAt}-${index}`}
+            >
+                <strong>{item.user?.name || "User"}</strong>
+                <span>{formatDate(item.createdAt, true)}</span>
+                <p>{item.text}</p>
+            </div>
+        ));
+    }
+
+    return (
+        <section className="request-comments-card">
+            <div className="details-card-header">
+                <h3>
+                    <FiMessageSquare />
+                    Comments
+                </h3>
+            </div>
+
+            <div className="comments-list">{commentsContent}</div>
+
+            {canComment && (
+                <form className="comment-form" onSubmit={onSubmit}>
+                    <textarea
+                        value={comment}
+                        onChange={onCommentChange}
+                        placeholder="Add a comment..."
+                        maxLength={1000}
+                        rows={3}
+                    />
+
+                    <button
+                        type="submit"
+                        disabled={commentLoading || commentsLoading || !comment.trim()}
+                    >
+                        {commentLoading ? "Adding..." : "Add Comment"}
+                    </button>
+                </form>
+            )}
+        </section>
+    );
+};
+
+const FeedbackCard = ({
+    feedback,
+    feedbackRating,
+    feedbackComment,
+    actionLoading,
+    onRatingChange,
+    onCommentChange,
+    onSubmit
+}) => (
+    <section className="request-feedback-card">
+        <div className="details-card-header">
+            <h3>Feedback</h3>
+        </div>
+
+        {feedback ? (
+            <div className="feedback-result">
+                <strong>
+                    {"★".repeat(feedback.rating)}
+                    {"☆".repeat(5 - feedback.rating)}
+                </strong>
+
+                <p>{feedback.comment || "Thank you for your feedback."}</p>
+            </div>
+        ) : (
+            <form className="feedback-form" onSubmit={onSubmit}>
+                <label htmlFor="feedback-rating">Rating</label>
+                <select id="feedback-rating" value={feedbackRating} onChange={onRatingChange}>
+                    <option value="5">5 - Excellent</option>
+                    <option value="4">4 - Good</option>
+                    <option value="3">3 - Average</option>
+                    <option value="2">2 - Poor</option>
+                    <option value="1">1 - Very poor</option>
+                </select>
+
+                <textarea
+                    value={feedbackComment}
+                    onChange={onCommentChange}
+                    placeholder="Tell us about your experience..."
+                    rows={3}
+                />
+
+                <button type="submit" disabled={actionLoading}>
+                    {actionLoading ? "Submitting..." : "Submit Feedback"}
+                </button>
+            </form>
+        )}
+    </section>
+);
+
 const RequestDetails = () => {
     const navigate = useNavigate();
     const { id } = useParams();
@@ -188,7 +375,7 @@ const RequestDetails = () => {
         }
 
         return `${api.defaults.baseURL}/requests/${request._id}/evidence`;
-    }, [request?.resolutionEvidence, request?._id]);
+    }, [request]);
 
     const hasEvidenceFile =
         typeof request?.resolutionEvidence === "string" &&
@@ -355,8 +542,6 @@ const RequestDetails = () => {
         );
     }
 
-    const currentIndex = statusOrder.indexOf(request.status);
-
     return (
         <div className="request-details-page">
             <button
@@ -421,7 +606,7 @@ const RequestDetails = () => {
 
                     <div className="details-card-body">
                         <div className="detail-item">
-                            <label>Description</label>
+                            <span className="detail-label">Description</span>
                             <p className="request-description">
                                 {request.description}
                             </p>
@@ -429,12 +614,12 @@ const RequestDetails = () => {
 
                         <div className="detail-row">
                             <div className="detail-item">
-                                <label>Category</label>
+                                <span className="detail-label">Category</span>
                                 <span>{request.category || "-"}</span>
                             </div>
 
                             <div className="detail-item">
-                                <label>Department</label>
+                                <span className="detail-label">Department</span>
                                 <span>
                                     {request.department ||
                                         request.aiDepartment ||
@@ -445,12 +630,12 @@ const RequestDetails = () => {
 
                         <div className="detail-row">
                             <div className="detail-item">
-                                <label>Location</label>
+                                <span className="detail-label">Location</span>
                                 <span>{request.location || "-"}</span>
                             </div>
 
                             <div className="detail-item">
-                                <label>Assigned Staff</label>
+                                <span className="detail-label">Assigned Staff</span>
                                 <span>
                                     {request.assignedTo?.name ||
                                         "Not assigned"}
@@ -460,14 +645,14 @@ const RequestDetails = () => {
 
                         <div className="detail-row">
                             <div className="detail-item">
-                                <label>Created</label>
+                                <span className="detail-label">Created</span>
                                 <span>
                                     {formatDate(request.createdAt, true)}
                                 </span>
                             </div>
 
                             <div className="detail-item">
-                                <label>Request Number</label>
+                                <span className="detail-label">Request Number</span>
                                 <span>
                                     {request.requestNumber || request._id}
                                 </span>
@@ -476,10 +661,10 @@ const RequestDetails = () => {
 
                         {request.attachment && (
                             <div className="attachment-box">
-                                <label>
+                                <span className="detail-label attachment-label">
                                     <FiPaperclip />
                                     Attachment
-                                </label>
+                                </span>
 
                                 <button
                                     type="button"
@@ -505,14 +690,14 @@ const RequestDetails = () => {
 
                         {request.resolution && (
                             <div className="resolution-box">
-                                <label>Resolution</label>
+                                <span className="detail-label">Resolution</span>
                                 <p>{request.resolution}</p>
                             </div>
                         )}
 
                         {request.resolutionEvidence && (
                             <div className="resolution-box">
-                                <label>Resolution Evidence</label>
+                                <span className="detail-label">Resolution Evidence</span>
                                 {hasEvidenceFile ? (
                                     <button
                                         type="button"
@@ -551,63 +736,7 @@ const RequestDetails = () => {
                     </div>
                 </div>
 
-                <div className="request-timeline-card">
-                    <div className="details-card-header">
-                        <h3>Status History</h3>
-                    </div>
-
-                    <div className="timeline">
-                        {statusOrder.map((step, index) => {
-                            const state =
-                                index < currentIndex
-                                    ? "completed"
-                                    : index === currentIndex
-                                      ? "current"
-                                      : "upcoming";
-
-                            const historyItem = (
-                                request.statusHistory || []
-                            ).find((item) => item.status === step);
-
-                            return (
-                                <div
-                                    className={`timeline-item ${state}`}
-                                    key={step}
-                                >
-                                    <div className="timeline-icon">
-                                        {state === "completed" ? (
-                                            <FiCheckCircle />
-                                        ) : state === "current" ? (
-                                            <FiClock />
-                                        ) : (
-                                            <span />
-                                        )}
-                                    </div>
-
-                                    <div className="timeline-content">
-                                        <strong>{step}</strong>
-
-                                        {historyItem && (
-                                            <p>
-                                                {formatDate(
-                                                    historyItem.changedAt,
-                                                    true
-                                                )}
-                                                {historyItem.changedBy
-                                                    ?.name &&
-                                                    ` · ${historyItem.changedBy.name}`}
-                                            </p>
-                                        )}
-
-                                        {index < statusOrder.length - 1 && (
-                                            <div className="timeline-line" />
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
+                <StatusTimeline request={request} formatDate={formatDate} />
             </div>
 
             <div
@@ -617,156 +746,28 @@ const RequestDetails = () => {
                         : "single-column"
                 }`}
             >
-                <section className="request-comments-card">
-                    <div className="details-card-header">
-                        <h3>
-                            <FiMessageSquare />
-                            Comments
-                        </h3>
-                    </div>
-
-                    <div className="comments-list">
-                        {commentsLoading ? (
-                            <p className="empty-detail">
-                                Loading comments...
-                            </p>
-                        ) : commentsError ? (
-                            <p className="empty-detail comment-error">
-                                {commentsError}
-                            </p>
-                        ) : comments.length === 0 ? (
-                            <p className="empty-detail">
-                                No comments yet.
-                            </p>
-                        ) : (
-                            comments.map((item, index) => (
-                                <div
-                                    className="comment-item"
-                                    key={
-                                        item._id ||
-                                        `${item.createdAt}-${index}`
-                                    }
-                                >
-                                    <strong>
-                                        {item.user?.name || "User"}
-                                    </strong>
-
-                                    <span>
-                                        {formatDate(
-                                            item.createdAt,
-                                            true
-                                        )}
-                                    </span>
-
-                                    <p>{item.text}</p>
-                                </div>
-                            ))
-                        )}
-                    </div>
-
-                    {canComment && (
-                        <form
-                            className="comment-form"
-                            onSubmit={addComment}
-                        >
-                            <textarea
-                                value={comment}
-                                onChange={(event) =>
-                                    setComment(event.target.value)
-                                }
-                                placeholder="Add a comment..."
-                                maxLength={1000}
-                                rows={3}
-                            />
-
-                            <button
-                                type="submit"
-                                disabled={
-                                    commentLoading ||
-                                    commentsLoading ||
-                                    !comment.trim()
-                                }
-                            >
-                                {commentLoading
-                                    ? "Adding..."
-                                    : "Add Comment"}
-                            </button>
-                        </form>
-                    )}
-                </section>
+                <CommentsCard
+                    comments={comments}
+                    commentsLoading={commentsLoading}
+                    commentsError={commentsError}
+                    canComment={canComment}
+                    comment={comment}
+                    commentLoading={commentLoading}
+                    onCommentChange={(event) => setComment(event.target.value)}
+                    onSubmit={addComment}
+                    formatDate={formatDate}
+                />
 
                 {isUser && request.status === "Closed" && (
-                    <section className="request-feedback-card">
-                        <div className="details-card-header">
-                            <h3>Feedback</h3>
-                        </div>
-
-                        {feedback ? (
-                            <div className="feedback-result">
-                                <strong>
-                                    {"★".repeat(feedback.rating)}
-                                    {"☆".repeat(5 - feedback.rating)}
-                                </strong>
-
-                                <p>
-                                    {feedback.comment ||
-                                        "Thank you for your feedback."}
-                                </p>
-                            </div>
-                        ) : (
-                            <form
-                                className="feedback-form"
-                                onSubmit={submitFeedback}
-                            >
-                                <label>Rating</label>
-
-                                <select
-                                    value={feedbackRating}
-                                    onChange={(event) =>
-                                        setFeedbackRating(
-                                            event.target.value
-                                        )
-                                    }
-                                >
-                                    <option value="5">
-                                        5 - Excellent
-                                    </option>
-                                    <option value="4">
-                                        4 - Good
-                                    </option>
-                                    <option value="3">
-                                        3 - Average
-                                    </option>
-                                    <option value="2">
-                                        2 - Poor
-                                    </option>
-                                    <option value="1">
-                                        1 - Very poor
-                                    </option>
-                                </select>
-
-                                <textarea
-                                    value={feedbackComment}
-                                    onChange={(event) =>
-                                        setFeedbackComment(
-                                            event.target.value
-                                        )
-                                    }
-                                    placeholder="Tell us about your experience..."
-                                    rows={3}
-                                />
-
-                                <button
-                                    type="submit"
-                                    disabled={actionLoading}
-                                >
-                                    {actionLoading
-                                        ? "Submitting..."
-                                        : "Submit Feedback"}
-                                </button>
-                            </form>
-                        )}
-                    </section>
+                    <FeedbackCard
+                        feedback={feedback}
+                        feedbackRating={feedbackRating}
+                        feedbackComment={feedbackComment}
+                        actionLoading={actionLoading}
+                        onRatingChange={(event) => setFeedbackRating(event.target.value)}
+                        onCommentChange={(event) => setFeedbackComment(event.target.value)}
+                        onSubmit={submitFeedback}
+                    />
                 )}
 
             </div>

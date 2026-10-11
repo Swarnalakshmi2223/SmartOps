@@ -149,7 +149,7 @@
 
     background: #f8f9fa;
 
-    color: #74808a;
+    color: #53616b;
 
     font-size: 10px;
     font-weight: 700;
@@ -243,14 +243,14 @@
 
 .status-closed {
     background: #eef0f2;
-    color: #66727a;
+    color: #53616b;
 }
 
 /* PRIORITY */
 
 .priority-low {
     background: #eef2f3;
-    color: #60717b;
+    color: #53616b;
 }
 
 .priority-medium {
@@ -280,7 +280,7 @@
 
     border-radius: 10px;
 
-    color: #6e7b84;
+    color: #53616b;
 
     font-size: 13px;
 

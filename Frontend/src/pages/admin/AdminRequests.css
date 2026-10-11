@@ -170,7 +170,7 @@
 
     background: #f8f9fa;
 
-    color: #74808a;
+    color: #53616b;
 
     font-size: 9px;
     font-weight: 700;
@@ -309,12 +309,12 @@
 
 .admin-request-status-closed {
     background: #eef0f2;
-    color: #66727a;
+    color: #53616b;
 }
 
 .admin-request-priority-low {
     background: #eef2f3;
-    color: #60717b;
+    color: #53616b;
 }
 
 .admin-request-priority-medium {
@@ -383,7 +383,7 @@
 
     border-radius: 10px;
 
-    color: #89949c;
+    color: #53616b;
 
     text-align: center;
 }
@@ -418,7 +418,7 @@
 
     border-radius: 10px;
 
-    color: #6e7b84;
+    color: #53616b;
 
     text-align: center;
 

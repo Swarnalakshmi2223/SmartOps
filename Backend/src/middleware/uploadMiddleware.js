@@ -1,6 +1,7 @@
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+const path = require("node:path");
+const fs = require("node:fs");
+const crypto = require("node:crypto");
 
 // Upload directory
 const uploadDirectory = path.join(__dirname, "../../uploads");
@@ -19,31 +20,43 @@ const storage = multer.diskStorage({
     filename: (req, file, cb) => {
         const extension = path.extname(file.originalname).toLowerCase();
 
-        if (!/^[a-z0-9]+$/.test(extension.slice(1))) {
+        if (!allowedExtensionsByMimeType[file.mimetype]?.includes(extension)) {
             return cb(new Error("Invalid attachment filename"));
         }
 
-        const uniqueName =
-            `${Date.now()}-${Math.round(Math.random() * 1e9)}` +
-            extension;
+        const uniqueName = `${Date.now()}-${crypto.randomBytes(16).toString("hex")}${extension}`;
 
         cb(null, uniqueName);
     }
 });
 
 // Allowed file types
-const allowedMimeTypes = [
+const allowedMimeTypes = new Set([
     "image/jpeg",
     "image/png",
     "image/webp",
     "application/pdf",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-];
+]);
+
+const allowedExtensionsByMimeType = {
+    "image/jpeg": [".jpg", ".jpeg"],
+    "image/png": [".png"],
+    "image/webp": [".webp"],
+    "application/pdf": [".pdf"],
+    "application/msword": [".doc"],
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"]
+};
 
 // File validation
 const fileFilter = (req, file, cb) => {
-    if (allowedMimeTypes.includes(file.mimetype)) {
+    if (
+        allowedMimeTypes.has(file.mimetype) &&
+        allowedExtensionsByMimeType[file.mimetype]?.includes(
+            path.extname(file.originalname).toLowerCase()
+        )
+    ) {
         cb(null, true);
     } else {
         cb(

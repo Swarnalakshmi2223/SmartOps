@@ -50,7 +50,7 @@
     border: 1px solid #e1e6ea;
     border-radius: 10px;
     text-align: center;
-    color: #6e7b84;
+    color: #53616b;
     font-size: 13px;
 }
 
@@ -68,7 +68,7 @@
     background: #ffffff;
     border: 1px solid #e1e6ea;
     border-radius: 10px;
-    color: #89949c;
+    color: #53616b;
     text-align: center;
 }
 
@@ -105,7 +105,7 @@
 .admin-feedback-table th {
     padding: 13px 18px;
     background: #f8f9fa;
-    color: #74808a;
+    color: #53616b;
     font-size: 10px;
     font-weight: 700;
     text-align: left;

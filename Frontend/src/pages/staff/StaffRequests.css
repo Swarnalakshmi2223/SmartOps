@@ -196,12 +196,12 @@
 
 .staff-request-status-closed {
     background: #eef0f2;
-    color: #66727a;
+    color: #53616b;
 }
 
 .staff-request-priority-low {
     background: #eef2f3;
-    color: #60717b;
+    color: #53616b;
 }
 
 .staff-request-priority-medium {
@@ -347,7 +347,7 @@
 
     border-radius: 10px;
 
-    color: #6e7b84;
+    color: #53616b;
 
     text-align: center;
 
@@ -579,18 +579,6 @@
     .staff-request-meta {
         flex-wrap: wrap;
         gap: 10px 16px;
-    }
-
-    .staff-request-card {
-        align-items: flex-start;
-
-        flex-direction: column;
-    }
-
-    .staff-request-card-side {
-        width: 100%;
-
-        align-items: flex-start;
     }
 
 }

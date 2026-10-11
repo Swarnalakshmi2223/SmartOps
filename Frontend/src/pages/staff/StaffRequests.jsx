@@ -299,14 +299,14 @@ const StaffRequests = () => {
                                 <div className="staff-request-meta">
 
                                     <span>
-                                        Category:
+                                        Category:{" "}
                                         <strong>
                                             {request.category}
                                         </strong>
                                     </span>
 
                                     <span>
-                                        Created:
+                                        Created:{" "}
                                         <strong>
                                             {formatDate(
                                                 request.createdAt
@@ -459,11 +459,12 @@ const StaffRequests = () => {
 
                         <div className="staff-modal-body">
 
-                            <label>
+                            <label htmlFor="staff-resolution">
                                 Resolution
                             </label>
 
                             <textarea
+                                id="staff-resolution"
                                 value={resolution}
                                 onChange={(event) =>
                                     setResolution(

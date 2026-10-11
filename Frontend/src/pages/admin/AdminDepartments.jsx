@@ -162,17 +162,19 @@ const AdminDepartments = () => {
                             {editingId ? "Edit department" : "New department"}
                         </h3>
 
-                        <label>Name</label>
+                        <label htmlFor="department-name">Name</label>
                         <input
                             type="text"
+                            id="department-name"
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
                             placeholder="e.g. IT Support"
                         />
 
-                        <label>Description</label>
+                        <label htmlFor="department-description">Description</label>
                         <textarea
+                            id="department-description"
                             name="description"
                             rows="3"
                             value={formData.description}

@@ -361,14 +361,15 @@ const MyRequests = () => {
 
                                                     <div className="request-info">
 
-                                                        <strong
+                                                        <button
+                                                               type="button"
                                                                className="request-clickable"
                                                                onClick={() =>
                                                                    navigate(`/user/requests/${request._id}`)
                                                                }
                                                            >
                                                                {request.title}
-                                                           </strong>
+                                                           </button>
 
                                                         <span>
                                                             #

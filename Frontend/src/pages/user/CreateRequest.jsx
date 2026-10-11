@@ -14,16 +14,28 @@ const departmentOptions = [
     "General"
 ];
 
-const allowedAttachmentTypes = [
+const allowedAttachmentTypes = new Set([
     "image/jpeg",
     "image/png",
     "image/webp",
     "application/pdf",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-];
+]);
 
 const maximumAttachmentSize = 5 * 1024 * 1024;
+
+const resolveSuggestedCategory = (matchedCategory, fallback) => {
+    if (!matchedCategory) {
+        return fallback;
+    }
+
+    if (typeof matchedCategory === "string") {
+        return matchedCategory.trim();
+    }
+
+    return String(matchedCategory.name || "").trim();
+};
 
 const CreateRequest = () => {
     const navigate = useNavigate();
@@ -121,7 +133,7 @@ const CreateRequest = () => {
             return;
         }
 
-        if (!allowedAttachmentTypes.includes(selectedFile.type)) {
+        if (!allowedAttachmentTypes.has(selectedFile.type)) {
             setAttachment(null);
             event.target.value = "";
             setError("Only JPG, PNG, WEBP, PDF, DOC, and DOCX files are allowed.");
@@ -204,7 +216,7 @@ const CreateRequest = () => {
     const normalizeCategory = (value) => {
         return String(value || "")
             .toLowerCase()
-            .replace(/&/g, "and")
+            .replaceAll("&", "and")
             .replace(/[^a-z0-9\s]/g, "")
             .replace(/\s+/g, " ")
             .trim();
@@ -316,11 +328,7 @@ const CreateRequest = () => {
             ...previousData,
 
             // Apply matching database category
-            category: matchedCategory
-                ? typeof matchedCategory === "string"
-                    ? matchedCategory.trim()
-                    : String(matchedCategory.name || "").trim()
-                : previousData.category,
+            category: resolveSuggestedCategory(matchedCategory, previousData.category),
 
             // Always apply valid AI priority
             priority: [
@@ -381,7 +389,9 @@ const CreateRequest = () => {
 
             if (!submissionKeyRef.current) {
                 submissionKeyRef.current = globalThis.crypto?.randomUUID?.() ||
-                    `request-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+                    `request-${Date.now()}-${Array.from(
+                        globalThis.crypto?.getRandomValues?.(new Uint32Array(2)) || []
+                    ).map((value) => value.toString(16)).join("")}`;
             }
 
             const requestFields = {
@@ -505,9 +515,9 @@ const CreateRequest = () => {
                     )}
 
                     {success && (
-                        <div className="form-success" role="status">
+                        <output className="form-success">
                             {success}
-                        </div>
+                        </output>
                     )}
 
                     {/* ======================================

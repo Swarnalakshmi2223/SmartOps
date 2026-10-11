@@ -152,12 +152,12 @@ const AdminAIReview = () => {
                     <span className="admin-ai-status-badge">{originalRequest.status}</span>
                 </div>
                 <div className="admin-ai-meta-grid">
-                    <div><label>Request number</label><strong>{originalRequest.requestNumber || originalRequest._id}</strong></div>
-                    <div><label>Category</label><strong>{originalRequest.category || "-"}</strong></div>
-                    <div><label>Department</label><strong>{originalRequest.department || "-"}</strong></div>
-                    <div><label>Priority</label><strong>{originalRequest.priority || "-"}</strong></div>
-                    <div><label>Created</label><strong>{formatDate(originalRequest.createdAt)}</strong></div>
-                    <div><label>AI analyzed</label><strong>{formatDate(review.aiAnalyzedAt)}</strong></div>
+                    <div><span className="admin-ai-field-label">Request number</span><strong>{originalRequest.requestNumber || originalRequest._id}</strong></div>
+                    <div><span className="admin-ai-field-label">Category</span><strong>{originalRequest.category || "-"}</strong></div>
+                    <div><span className="admin-ai-field-label">Department</span><strong>{originalRequest.department || "-"}</strong></div>
+                    <div><span className="admin-ai-field-label">Priority</span><strong>{originalRequest.priority || "-"}</strong></div>
+                    <div><span className="admin-ai-field-label">Created</span><strong>{formatDate(originalRequest.createdAt)}</strong></div>
+                    <div><span className="admin-ai-field-label">AI analyzed</span><strong>{formatDate(review.aiAnalyzedAt)}</strong></div>
                 </div>
                 <p className="admin-ai-description">{originalRequest.description || "No description available."}</p>
             </section>
@@ -170,9 +170,9 @@ const AdminAIReview = () => {
                     </span>
                 </div>
                 <div className="admin-ai-suggestion-grid">
-                    <div><label>AI category</label><strong>{review.aiCategory || "-"}</strong><small>Confidence score: {review.aiCategoryScore ?? 0}</small></div>
-                    <div><label>AI department</label><strong>{review.aiDepartment || "-"}</strong><small>Confidence score: {review.aiDepartmentScore ?? 0}</small></div>
-                    <div><label>AI priority</label><strong>{review.aiPriority || "-"}</strong><small>Confidence score: {review.aiPriorityScore ?? 0}</small></div>
+                    <div><span className="admin-ai-field-label">AI category</span><strong>{review.aiCategory || "-"}</strong><small>Confidence score: {review.aiCategoryScore ?? 0}</small></div>
+                    <div><span className="admin-ai-field-label">AI department</span><strong>{review.aiDepartment || "-"}</strong><small>Confidence score: {review.aiDepartmentScore ?? 0}</small></div>
+                    <div><span className="admin-ai-field-label">AI priority</span><strong>{review.aiPriority || "-"}</strong><small>Confidence score: {review.aiPriorityScore ?? 0}</small></div>
                 </div>
                 <div className="admin-ai-edit-grid">
                     <label>Final category<select value={draft.category} onChange={(event) => updateDraft("category", event.target.value)}><option value="">Select category</option>{categories.map((item) => <option key={item._id} value={item.name}>{item.name}</option>)}{draft.category && !categories.some((item) => item.name === draft.category) && <option value={draft.category}>{draft.category}</option>}</select></label>
@@ -204,11 +204,11 @@ const AdminAIReview = () => {
                                     </div>
                                     {duplicateRequest ? (
                                         <div className="admin-ai-meta-grid">
-                                            <div><label>Category</label><strong>{duplicateRequest.category || "-"}</strong></div>
-                                            <div><label>Department</label><strong>{duplicateRequest.department || "-"}</strong></div>
-                                            <div><label>Priority</label><strong>{duplicateRequest.priority || "-"}</strong></div>
-                                            <div><label>Status</label><strong>{duplicateRequest.status || "-"}</strong></div>
-                                            <div><label>Created</label><strong>{formatDate(duplicateRequest.createdAt)}</strong></div>
+                                            <div><span className="admin-ai-field-label">Category</span><strong>{duplicateRequest.category || "-"}</strong></div>
+                                            <div><span className="admin-ai-field-label">Department</span><strong>{duplicateRequest.department || "-"}</strong></div>
+                                            <div><span className="admin-ai-field-label">Priority</span><strong>{duplicateRequest.priority || "-"}</strong></div>
+                                            <div><span className="admin-ai-field-label">Status</span><strong>{duplicateRequest.status || "-"}</strong></div>
+                                            <div><span className="admin-ai-field-label">Created</span><strong>{formatDate(duplicateRequest.createdAt)}</strong></div>
                                         </div>
                                     ) : <p className="admin-ai-empty">The suspected request is no longer available.</p>}
                                     <div className="admin-ai-duplicate-footer">

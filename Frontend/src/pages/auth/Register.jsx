@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     FiBriefcase,
-    FiEye,
-    FiEyeOff,
     FiLock,
     FiMail,
     FiPhone,
@@ -17,6 +15,7 @@ import BrandLogo from "../../components/sidebar/BrandLogo";
 import "./Register.css";
 
 const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const validPhone = /^[+()\-\s\d]{7,20}$/;
 
 const Register = () => {
@@ -76,7 +75,7 @@ const Register = () => {
             return;
         }
 
-        if (!/^\S+@\S+\.\S+$/.test(email)) {
+        if (!emailPattern.test(email)) {
             setError("Please enter a valid email address.");
             return;
         }
@@ -158,7 +157,7 @@ const Register = () => {
                     </div>
 
                     {error && <div className="register-error" role="alert">{error}</div>}
-                    {success && <div className="register-success" role="status">{success}</div>}
+                    {success && <output className="register-success">{success}</output>}
 
                     <form className="register-form" onSubmit={handleSubmit}>
                         <div className="register-form-grid">

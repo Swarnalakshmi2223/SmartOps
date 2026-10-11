@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import api from "../services/api";
 import socketService from "../services/socket";
 
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
         return () => window.removeEventListener("smartops:auth-expired", handleExpiredSession);
     }, []);
 
-    const login = async (email, password) => {
+    const login = useCallback(async (email, password) => {
 
         const response = await api.post("/auth/login", {
             email,
@@ -53,9 +53,9 @@ export const AuthProvider = ({ children }) => {
         setUser(user);
 
         return response.data;
-    };
+    }, []);
 
-    const logout = () => {
+    const logout = useCallback(() => {
 
         socketService.disconnect();
         localStorage.removeItem("token");
@@ -63,24 +63,26 @@ export const AuthProvider = ({ children }) => {
 
         setToken(null);
         setUser(null);
-    };
+    }, []);
      
-    const updateStoredUser = (updatedFields) => {
-    const mergedUser = { ...user, ...updatedFields };
+    const updateStoredUser = useCallback((updatedFields) => {
+        const mergedUser = { ...user, ...updatedFields };
 
-    localStorage.setItem("user", JSON.stringify(mergedUser));
-    setUser(mergedUser);
-};
+        localStorage.setItem("user", JSON.stringify(mergedUser));
+        setUser(mergedUser);
+    }, [user]);
+
+    const contextValue = useMemo(() => ({
+        user,
+        token,
+        login,
+        logout,
+        updateStoredUser
+    }), [user, token, login, logout, updateStoredUser]);
 
     return (
         <AuthContext.Provider
-            value={{
-                user,
-                token,
-                login,           
-                logout,
-                updateStoredUser
-            }}
+            value={contextValue}
         >
             {children}
         </AuthContext.Provider>

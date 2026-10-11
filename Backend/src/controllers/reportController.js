@@ -184,7 +184,7 @@ const getDateBasedReport = async (req, res) => {
         const fromDate = new Date(from);
         const toDate = new Date(to);
 
-        if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+        if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
             return res.status(400).json({
                 message: "Invalid date format. Use YYYY-MM-DD"
             });

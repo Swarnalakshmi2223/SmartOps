@@ -6,7 +6,7 @@ import "./BrandLogo.css";
  *   compact  - show only the mark (for a collapsed sidebar)
  *   tagline  - small line under the name
  */
-const BrandLogo = ({ compact = false, size = "default", tagline = "Operations Platform" }) =>{
+const BrandLogo = ({ compact = false, tagline = "Operations Platform" }) =>{
     return (
         <div className="so-logo">
             <div className="so-logo__mark" aria-hidden="true">

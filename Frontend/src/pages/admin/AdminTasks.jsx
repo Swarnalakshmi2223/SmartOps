@@ -424,11 +424,12 @@ const AdminTasks = () => {
 
                             <div className="admin-task-modal-body">
 
-                                <label>
+                                <label htmlFor="task-title">
                                     Task Title
                                 </label>
 
                                 <input
+                                    id="task-title"
                                     type="text"
                                     name="title"
                                     value={formData.title}
@@ -437,11 +438,12 @@ const AdminTasks = () => {
                                     required
                                 />
 
-                                <label>
+                                <label htmlFor="task-description">
                                     Description
                                 </label>
 
                                 <textarea
+                                    id="task-description"
                                     name="description"
                                     value={
                                         formData.description
@@ -451,11 +453,12 @@ const AdminTasks = () => {
                                     required
                                 />
 
-                                <label>
+                                <label htmlFor="task-request">
                                     Related Request
                                 </label>
 
                                 <select
+                                    id="task-request"
                                     name="requestId"
                                     value={
                                         formData.requestId
@@ -487,11 +490,12 @@ const AdminTasks = () => {
 
                                 </select>
 
-                                <label>
+                                <label htmlFor="task-assignee">
                                     Assign To
                                 </label>
 
                                 <select
+                                    id="task-assignee"
                                     name="assignedTo"
                                     value={
                                         formData.assignedTo
@@ -537,11 +541,12 @@ const AdminTasks = () => {
 
                                 </select>
 
-                                <label>
+                                <label htmlFor="task-due-date">
                                     Due Date
                                 </label>
 
                                 <input
+                                    id="task-due-date"
                                     type="date"
                                     name="dueDate"
                                     value={

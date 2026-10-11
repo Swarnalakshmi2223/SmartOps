@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const crypto = require("node:crypto");
 
 const requestSchema = new mongoose.Schema(
     {
@@ -307,7 +308,7 @@ const requestSchema = new mongoose.Schema(
 requestSchema.pre("validate", function () {
     if (this.isNew && !this.requestNumber) {
         const timestamp = Date.now();
-        const random = Math.floor(1000 + Math.random() * 9000);
+        const random = crypto.randomInt(1000, 10000);
 
         this.requestNumber = `SO-${timestamp}-${random}`;
     }
