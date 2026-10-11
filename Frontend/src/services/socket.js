@@ -2,7 +2,7 @@ import { io } from "socket.io-client";
 
 const socketUrl =
     import.meta.env.VITE_SOCKET_URL ||
-    "http://localhost:5000";
+    window.location.origin;
 
 let socket = null;
 const listeners = new Map();

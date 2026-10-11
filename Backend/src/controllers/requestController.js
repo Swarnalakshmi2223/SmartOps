@@ -152,7 +152,10 @@ const sendCreationEmail = async (request, requestCreator) => {
                 requestId: request._id.toString()
             });
         } else {
-            const requestUrl = `${process.env.FRONTEND_ORIGIN || "http://localhost:5173"}/user/requests/${request._id}`;
+            const deploymentHost = process.env.VERCEL_URL
+                ? `https://${process.env.VERCEL_URL}`
+                : "http://localhost:5173";
+            const requestUrl = `${process.env.FRONTEND_ORIGIN || deploymentHost}/user/requests/${request._id}`;
             const requestNumber = request.requestNumber || request._id;
             const emailResult = await sendEmail({
                 to: recipientEmail,

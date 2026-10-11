@@ -25,12 +25,21 @@ if (!jwtSecret || jwtSecret.length < 32) {
     throw new Error("JWT_SECRET must be configured with at least 32 characters");
 }
 
-const frontendOrigin = process.env.FRONTEND_ORIGIN || "http://127.0.0.1:5173";
+const frontendOrigin = process.env.FRONTEND_ORIGIN || (
+    process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "http://127.0.0.1:5173"
+);
 
 const app = express();
-const httpServer = http.createServer(app);
+const isVercel = Boolean(process.env.VERCEL);
+const httpServer = isVercel ? null : http.createServer(app);
 
-initializeSocket(httpServer, frontendOrigin);
+// Vercel's Express service handles HTTP requests as functions. Socket.IO
+// requires a persistent server, so it remains enabled for local deployments.
+if (httpServer) {
+    initializeSocket(httpServer, frontendOrigin);
+}
 
 connectDB();
 
@@ -94,8 +103,12 @@ app.use((err, req, res, next) => {
     });
 });
 
-const PORT = process.env.PORT || 5000;
+if (httpServer) {
+    const PORT = process.env.PORT || 5000;
 
-httpServer.listen(PORT, () => {
-    console.log(`SmartOps server running on port ${PORT}`);
-});
+    httpServer.listen(PORT, () => {
+        console.log(`SmartOps server running on port ${PORT}`);
+    });
+}
+
+module.exports = app;

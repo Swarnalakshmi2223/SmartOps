@@ -1,0 +1,46 @@
+flowchart TD
+    Start([Start]) --> Login[User opens SmartOps]
+    Login --> Authenticate{Login successful?}
+    Authenticate -->|No| Login
+    Authenticate -->|Yes| Role{User role}
+
+    Role -->|Employee| Employee[Create and track request]
+    Role -->|Administrator| Admin[Review request and assign staff]
+    Role -->|Staff| Staff[View assigned requests and tasks]
+
+    Employee --> Submit[Submit request]
+    Submit --> Validate[Backend validates user, data, and access]
+    Validate -->|Invalid| Error[Show error]
+    Error --> Employee
+    Validate -->|Valid| Pending[(Save request in MongoDB)]
+
+    Pending --> Admin
+    Admin --> Assigned[Assign request to staff]
+    Assigned --> Staff
+    Staff --> Work[Start work and update task]
+    Work --> Progress[Request In Progress]
+    Progress --> Resolve[Resolve request and add outcome]
+    Resolve --> Resolved[Request Resolved]
+    Resolved --> Employee
+    Employee --> Close[Close request and submit feedback]
+    Close --> Closed([Request Closed])
+
+    Admin --> AI[Review AI suggestions]
+    AI --> Decision[Confirm or reject suggestions]
+    Decision --> Admin
+
+    Pending -.-> Notify[Notifications and live updates]
+    Assigned -.-> Notify
+    Progress -.-> Notify
+    Resolved -.-> Notify
+    Resolve -.-> Files[Optional protected evidence file]
+    Pending -.-> Email[Confirmation email]
+
+    classDef role fill:#dbeafe,stroke:#2563eb,color:#111827;
+    classDef action fill:#f3f4f6,stroke:#6b7280,color:#111827;
+    classDef state fill:#dcfce7,stroke:#16a34a,color:#111827;
+    classDef decision fill:#fef3c7,stroke:#d97706,color:#111827;
+    class Employee,Staff,Admin role;
+    class Submit,Validate,Assigned,Work,Resolve,Close,AI,Decision action;
+    class Pending,Progress,Resolved,Closed state;
+    class Authenticate,Role decision;
