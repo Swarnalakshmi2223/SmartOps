@@ -90,6 +90,7 @@ const registerUser = async (req,res) => {
         });
 
     } catch (error) {
+        console.error("Registration failed:", error.message);
         res.status(500).json({
             message: "Registration failed"
         });
@@ -155,6 +156,7 @@ const loginUser = async (req, res) => {
     });
 
     } catch (error) {
+    console.error("Login failed:", error.message);
     res.status(500).json({
         message: "Login failed"
     });

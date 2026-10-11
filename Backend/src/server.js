@@ -38,15 +38,25 @@ const httpServer = http.createServer(app);
 // Vercel closes connections at the function duration limit; clients reconnect.
 initializeSocket(httpServer, frontendOrigin);
 
-connectDB();
-
-
 app.use(cors({
     origin: frontendOrigin,
     credentials: true
 }));
 app.use(helmet());
 app.use(express.json());
+
+// Serverless instances can be cold-started without a ready database connection.
+// Wait before entering routes that query MongoDB and return a retryable response
+// if the configured database is unavailable.
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        return next();
+    } catch (error) {
+        console.error("MongoDB connection failed:", error.message);
+        return res.status(503).json({ message: "Database unavailable" });
+    }
+});
 
 // Controllers keep detailed errors in server logs, but never return them to clients.
 app.use((req, res, next) => {
