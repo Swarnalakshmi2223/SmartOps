@@ -521,6 +521,15 @@ const AdminTasks = () => {
                                                     }
                                                 >
                                                     {member.name}
+                                                    {" - "}
+                                                    {member.email}
+                                                    {" - Department: "}
+                                                    {member.departmentName ||
+                                                        "Department unavailable"}
+                                                    {member.departmentName &&
+                                                        member.departmentIsActive === false
+                                                        ? " (inactive)"
+                                                        : ""}
                                                 </option>
 
                                             )

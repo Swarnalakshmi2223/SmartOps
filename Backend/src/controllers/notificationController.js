@@ -13,7 +13,8 @@ const createNotification = async (req, res) => {
             message,
             type,
             relatedRequest,
-            relatedTask
+            relatedTask,
+            link
         } = req.body;
 
         if (!userId || !title || !message) {
@@ -28,7 +29,8 @@ const createNotification = async (req, res) => {
             message,
             type: type || "system",
             relatedRequest: relatedRequest || null,
-            relatedTask: relatedTask || null
+            relatedTask: relatedTask || null,
+            link: link || null
         });
 
         await notification.save();
@@ -57,7 +59,7 @@ const getMyNotifications = async (req, res) => {
         })
             .populate(
                 "relatedRequest",
-                "title status priority"
+                "requestNumber title status priority createdBy"
             )
             .populate(
                 "relatedTask",
@@ -89,7 +91,7 @@ const getUnreadNotifications = async (req, res) => {
         })
             .populate(
                 "relatedRequest",
-                "title status priority"
+                "requestNumber title status priority createdBy"
             )
             .populate(
                 "relatedTask",

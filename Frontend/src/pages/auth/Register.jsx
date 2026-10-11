@@ -12,6 +12,7 @@ import {
 } from "react-icons/fi";
 
 import api from "../../services/api";
+import BrandLogo from "../../components/sidebar/BrandLogo";
 
 import "./Register.css";
 
@@ -128,15 +129,25 @@ const Register = () => {
         <div className="register-page">
             <div className="register-container">
                 <div className="register-brand-section">
-                    <div className="register-brand-logo">S</div>
-                    <h1>SmartOps</h1>
-                    <p>Smart Operations &amp; Service Request Management</p>
-                    <div className="register-brand-description">
-                        <h2>Start working smarter.</h2>
-                        <p>
+                    <div className="lb-content">
+
+                        <BrandLogo size="large" />
+
+                        <p className="lb-subtitle">
+                            Smart Operations &amp; Service Request Management
+                        </p>
+
+                        <div className="lb-divider" />
+
+                        <h2 className="lb-headline">
+                            Start working smarter.
+                        </h2>
+
+                        <p className="lb-text">
                             Create your employee account to submit and track
                             service requests in one centralized platform.
                         </p>
+
                     </div>
                 </div>
 
@@ -146,8 +157,8 @@ const Register = () => {
                         <p>Register as a SmartOps employee</p>
                     </div>
 
-                    {error && <div className="register-error">{error}</div>}
-                    {success && <div className="register-success">{success}</div>}
+                    {error && <div className="register-error" role="alert">{error}</div>}
+                    {success && <div className="register-success" role="status">{success}</div>}
 
                     <form className="register-form" onSubmit={handleSubmit}>
                         <div className="register-form-grid">

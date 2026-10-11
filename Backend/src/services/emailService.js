@@ -2,12 +2,18 @@ const nodemailer = require("nodemailer");
 require("dotenv").config();
 
 const transporter = nodemailer.createTransport({
-    service: process.env.MAIL_SERVICE,
+    service: process.env.MAIL_SERVICE || "gmail",
     auth: {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASSWORD
     }
 });
+
+const sanitizeErrorMessage = (error) => String(
+    error?.message || "Email operation failed"
+)
+    .replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g, "[redacted-email]")
+    .replace(/(pass(word)?\s*[=:]\s*)[^\s]+/gi, "$1[redacted]");
 
 const sendEmail = async ({ to, subject, text, html }) => {
     try {
@@ -19,18 +25,25 @@ const sendEmail = async ({ to, subject, text, html }) => {
             html
         });
 
-        console.log("Email sent successfully:", info.messageId);
+        console.log("Email accepted by SMTP transport:", {
+            messageId: info.messageId,
+            recipientDomain: String(to).split("@")[1] || "unknown"
+        });
 
         return {
             success: true,
             messageId: info.messageId
         };
     } catch (error) {
-        console.error("Email sending failed:", error.message);
+        console.error("Email sending failed:", {
+            code: error.code || "UNKNOWN",
+            responseCode: error.responseCode || null,
+            message: sanitizeErrorMessage(error)
+        });
 
         return {
             success: false,
-            error: error.message
+            errorCode: error.code || "EMAIL_SEND_FAILED"
         };
     }
 };
@@ -43,7 +56,11 @@ const verifyEmailConnection = async () => {
 
         return true;
     } catch (error) {
-        console.error("Email service connection failed:", error.message);
+        console.error("Email service connection failed:", {
+            code: error.code || "UNKNOWN",
+            responseCode: error.responseCode || null,
+            message: sanitizeErrorMessage(error)
+        });
 
         return false;
     }

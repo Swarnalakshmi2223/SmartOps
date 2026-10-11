@@ -10,7 +10,8 @@ const {
     getActiveDepartments,
     getDepartmentById,
     updateDepartment,
-    updateDepartmentStatus
+    updateDepartmentStatus,
+    deleteDepartment
 } = require("../controllers/departmentController");
 
 router.get(
@@ -56,6 +57,13 @@ router.patch(
     authMiddleware,
     roleMiddleware("admin"),
     updateDepartmentStatus
+);
+
+router.delete(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("admin"),
+    deleteDepartment
 );
 
 

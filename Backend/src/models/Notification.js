@@ -44,6 +44,25 @@ const notificationSchema = new mongoose.Schema(
             default: null
         },
 
+        // Optional client-side route for notifications that open a related resource.
+        link: {
+            type: String,
+            trim: true,
+            default: null
+        },
+
+        // Automatic notifications use this key to remain idempotent when a
+        // lifecycle handler is retried or reached through another endpoint.
+        notificationKey: {
+            type: String,
+            trim: true,
+            // Keep this field absent for normal notifications so the sparse
+            // unique index does not treat them as the same notification.
+            default: undefined,
+            unique: true,
+            sparse: true
+        },
+
         isRead: {
             type: Boolean,
             default: false

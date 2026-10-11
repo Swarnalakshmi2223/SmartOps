@@ -10,12 +10,33 @@ const {
 } = require("../ai/aiService");
 
 const {
-    createAutomaticNotification
+    createAutomaticNotification,
+    notifyActiveAdministrators
 } = require("../services/notificationService");
 const { sendEmail } = require("../services/emailService");
 const {
     emitRequestEvent
 } = require("../socket/socketServer");
+
+const confirmationEmailFailureMessage =
+    "Your request was created successfully, but the confirmation email could not be sent.";
+
+const escapeHtml = (value) => String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const toPublicRequest = (request) => {
+    const publicRequest = request.toObject();
+    delete publicRequest.aiDuplicates;
+    delete publicRequest.creationKey;
+    delete publicRequest.confirmationEmailSent;
+    delete publicRequest.confirmationEmailMessageId;
+    delete publicRequest.confirmationEmailAttemptedAt;
+    return publicRequest;
+};
 
 const createRequest = async (req, res) => {
     try {
@@ -34,6 +55,34 @@ const createRequest = async (req, res) => {
             });
         }
 
+        const creationKey = String(
+            req.headers["x-idempotency-key"] || ""
+        ).trim();
+
+        if (creationKey && creationKey.length <= 200) {
+            const existingRequest = await Request.findOne({ creationKey })
+                .select(
+                    "+creationKey +confirmationEmailSent +confirmationEmailMessageId"
+                );
+
+            if (existingRequest) {
+                if (existingRequest.createdBy.toString() !== req.user.id) {
+                    return res.status(409).json({
+                        message: "This request submission key has already been used"
+                    });
+                }
+
+                return res.status(200).json({
+                    message: existingRequest.confirmationEmailSent
+                        ? "Your request was created successfully, and the confirmation email was sent."
+                        : confirmationEmailFailureMessage,
+                    emailSent: existingRequest.confirmationEmailSent,
+                    duplicateSubmission: true,
+                    request: toPublicRequest(existingRequest)
+                });
+            }
+        }
+
         const newRequest = new Request({
             title,
             description,
@@ -42,7 +91,13 @@ const createRequest = async (req, res) => {
             department: department || null,
             location: location || null,
             attachment: req.file ? req.file.filename : null,
+            attachmentOriginalName: req.file ? req.file.originalname : null,
+            attachmentMimeType: req.file ? req.file.mimetype : null,
+            attachmentSize: req.file ? req.file.size : null,
             createdBy: req.user.id,
+            ...(creationKey && creationKey.length <= 200
+                ? { creationKey }
+                : {}),
 
             // Initial request status history
             statusHistory: [
@@ -95,12 +150,28 @@ const createRequest = async (req, res) => {
 
         await newRequest.save();
 
-        // Send the request-creation email only after the request is safely stored.
-        // Email delivery must not turn a successful request creation into a failure.
+        let requestCreator = null;
         try {
-            const requestCreator = await User.findById(req.user.id)
+            requestCreator = await User.findById(req.user.id)
                 .select("name email")
                 .lean();
+        } catch (creatorError) {
+            console.error("Request creator lookup failed:", creatorError.message);
+        }
+
+        await notifyActiveAdministrators({
+            request: newRequest,
+            event: "created",
+            title: "New Request Created",
+            requesterName: requestCreator?.name
+        });
+
+        // Send the request-creation email only after the request is safely stored.
+        // Email delivery must not turn a successful request creation into a failure.
+        let emailSent = false;
+        let emailMessage = confirmationEmailFailureMessage;
+
+        try {
             const recipientEmail = requestCreator?.email?.trim();
             const hasValidRecipientEmail = Boolean(
                 recipientEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)
@@ -117,18 +188,30 @@ const createRequest = async (req, res) => {
                     requestId: newRequest._id.toString()
                 });
             } else {
+                const requestUrl = `${process.env.FRONTEND_ORIGIN || "http://localhost:5173"}/user/requests/${newRequest._id}`;
+                const requestNumber = newRequest.requestNumber || newRequest._id;
                 const emailResult = await sendEmail({
                     to: recipientEmail,
                     subject: `SmartOps request created: ${newRequest.title}`,
-                    text: `Your SmartOps service request has been created successfully.\n\nRequest: ${newRequest.title}\nRequest ID: ${newRequest.requestNumber || newRequest._id}\nStatus: ${newRequest.status}`,
+                    text: `Your SmartOps service request has been created successfully.\n\nRequest number: ${requestNumber}\nTitle: ${newRequest.title}\nCategory: ${newRequest.category}\nPriority: ${newRequest.priority}\nCurrent status: ${newRequest.status}\n\nTrack your request in SmartOps: ${requestUrl}`,
                     html: `
                         <h2>SmartOps request created</h2>
                         <p>Your service request has been created successfully.</p>
-                        <p><strong>Request:</strong> ${newRequest.title}</p>
-                        <p><strong>Request ID:</strong> ${newRequest.requestNumber || newRequest._id}</p>
-                        <p><strong>Status:</strong> ${newRequest.status}</p>
+                        <p><strong>Request number:</strong> ${escapeHtml(requestNumber)}</p>
+                        <p><strong>Title:</strong> ${escapeHtml(newRequest.title)}</p>
+                        <p><strong>Category:</strong> ${escapeHtml(newRequest.category)}</p>
+                        <p><strong>Priority:</strong> ${escapeHtml(newRequest.priority)}</p>
+                        <p><strong>Current status:</strong> ${escapeHtml(newRequest.status)}</p>
+                        <p><a href="${escapeHtml(requestUrl)}">Track this request in SmartOps</a></p>
                     `
                 });
+
+                emailSent = Boolean(emailResult.success);
+                emailMessage = emailSent
+                    ? "Your request was created successfully, and the confirmation email was sent."
+                    : confirmationEmailFailureMessage;
+
+                newRequest.confirmationEmailMessageId = emailResult.messageId || null;
 
                 console.log("Request creation email result:", {
                     requestId: newRequest._id.toString(),
@@ -142,6 +225,10 @@ const createRequest = async (req, res) => {
             });
         }
 
+        newRequest.confirmationEmailSent = emailSent;
+        newRequest.confirmationEmailAttemptedAt = new Date();
+        await newRequest.save();
+
         emitRequestEvent("request.created", newRequest);
 
         // Audit log
@@ -154,11 +241,11 @@ const createRequest = async (req, res) => {
         });
 
         // Do not expose AI duplicate details in normal response
-        const responseRequest = newRequest.toObject();
-        delete responseRequest.aiDuplicates;
+        const responseRequest = toPublicRequest(newRequest);
 
         return res.status(201).json({
-            message: "Request created successfully",
+            message: emailMessage,
+            emailSent,
             request: responseRequest
         });
 
@@ -505,7 +592,7 @@ const updateRequestStatus = async (req, res) => {
             previousStatus: oldStatus,
             status
         });
-        
+
                
         await createAuditLog({
             user: req.user.id,
@@ -871,6 +958,13 @@ const closeRequest = async (req, res) => {
                 relatedRequest: request._id
             });
         }
+
+        await notifyActiveAdministrators({
+            request,
+            event: "status-closed",
+            title: "Request Closed",
+            actorId: req.user.id
+        });
 
         return res.status(200).json({
             message: "Request closed successfully",

@@ -42,6 +42,8 @@ const RequestDetails = () => {
     const [actionLoading, setActionLoading] = useState(false);
     const [feedbackRating, setFeedbackRating] = useState(5);
     const [feedbackComment, setFeedbackComment] = useState("");
+    const [fileLoading, setFileLoading] = useState("");
+    const [fileError, setFileError] = useState("");
 
     const isUser = role === "user";
     const canComment =
@@ -193,6 +195,43 @@ const RequestDetails = () => {
         /^[a-zA-Z0-9_-]+\.(jpg|jpeg|png|webp|pdf|doc|docx)$/i.test(
             request.resolutionEvidence
         );
+
+    const openProtectedFile = async (url, filename, fileType) => {
+        const previewWindow = window.open("", "_blank");
+
+        try {
+            setFileLoading(fileType);
+            setFileError("");
+
+            const response = await api.get(url, {
+                responseType: "blob"
+            });
+            const objectUrl = URL.createObjectURL(response.data);
+
+            if (previewWindow) {
+                previewWindow.location.href = objectUrl;
+                window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+                return;
+            }
+
+            const downloadLink = document.createElement("a");
+            downloadLink.href = objectUrl;
+            downloadLink.download = filename || "SmartOps-file";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            downloadLink.remove();
+            window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+        } catch (fileFetchError) {
+            previewWindow?.close();
+            console.error(`Failed to fetch ${fileType}:`, fileFetchError);
+            setFileError(
+                fileFetchError.response?.data?.message ||
+                    `Unable to open ${fileType}. The file may be unavailable or you may not have access.`
+            );
+        } finally {
+            setFileLoading("");
+        }
+    };
 
     const addComment = async (event) => {
         event.preventDefault();
@@ -442,15 +481,25 @@ const RequestDetails = () => {
                                     Attachment
                                 </label>
 
-                                <a
-                                    href={attachmentUrl}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    download
+                                <button
+                                    type="button"
+                                    onClick={() => openProtectedFile(
+                                        attachmentUrl,
+                                        request.attachmentOriginalName ||
+                                            request.attachment,
+                                        "attachment"
+                                    )}
+                                    disabled={fileLoading === "attachment"}
                                 >
                                     <FiDownload />
-                                    {request.attachment}
-                                </a>
+                                    {fileLoading === "attachment"
+                                        ? "Opening attachment..."
+                                        : `View or download ${request.attachmentOriginalName || request.attachment}`}
+                                </button>
+
+                                {fileError && (
+                                    <p className="file-error">{fileError}</p>
+                                )}
                             </div>
                         )}
 
@@ -465,15 +514,22 @@ const RequestDetails = () => {
                             <div className="resolution-box">
                                 <label>Resolution Evidence</label>
                                 {hasEvidenceFile ? (
-                                    <a
-                                        href={evidenceUrl}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        download
+                                    <button
+                                        type="button"
+                                        onClick={() => openProtectedFile(
+                                            evidenceUrl,
+                                            request.resolutionEvidence,
+                                            "resolution evidence"
+                                        )}
+                                        disabled={
+                                            fileLoading === "resolution evidence"
+                                        }
                                     >
                                         <FiDownload />
-                                        View resolution evidence
-                                    </a>
+                                        {fileLoading === "resolution evidence"
+                                            ? "Opening resolution evidence..."
+                                            : "View resolution evidence"}
+                                    </button>
                                 ) : (
                                     <p>{request.resolutionEvidence}</p>
                                 )}
@@ -554,7 +610,13 @@ const RequestDetails = () => {
                 </div>
             </div>
 
-            <div className="request-secondary-grid">
+            <div
+                className={`request-secondary-grid ${
+                    isUser && request.status === "Closed"
+                        ? ""
+                        : "single-column"
+                }`}
+            >
                 <section className="request-comments-card">
                     <div className="details-card-header">
                         <h3>
@@ -707,19 +769,6 @@ const RequestDetails = () => {
                     </section>
                 )}
 
-                {!isUser && (
-                    <section className="request-feedback-card">
-                        <div className="details-card-header">
-                            <h3>Access</h3>
-                        </div>
-
-                        <p className="empty-detail">
-                            {role === "staff"
-                                ? "Assigned request collaboration is available through comments."
-                                : "Administrator view: request information and history."}
-                        </p>
-                    </section>
-                )}
             </div>
         </div>
     );

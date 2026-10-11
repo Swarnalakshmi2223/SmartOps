@@ -11,7 +11,8 @@ const {
     getCategoryById,
     updateCategory,
     updateCategoryStatus,
-    getActiveCategories
+    getActiveCategories,
+    deleteCategory
 } = require("../controllers/categoryController");
 
 
@@ -67,6 +68,13 @@ router.patch(
     authMiddleware,
     roleMiddleware("admin"),
     updateCategoryStatus
+);
+
+router.delete(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("admin"),
+    deleteCategory
 );
 
 

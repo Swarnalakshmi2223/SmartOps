@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { FiMail, FiLock, FiEye, FiEyeOff, FiLogIn } from "react-icons/fi";
 import "./Login.css";
+import BrandLogo from "../../components/sidebar/BrandLogo";
 
 const Login = () => {
 
@@ -75,23 +76,25 @@ const Login = () => {
 
                 <div className="login-brand-section">
 
-                    <div className="brand-logo">
-                        S
-                    </div>
+                    <div className="lb-content">
 
-                    <h1>SmartOps</h1>
+                        <BrandLogo size="large" />
 
-                    <p>
-                        Smart Operations & Service Request Management
-                    </p>
+                        <p className="lb-subtitle">
+                            Smart Operations & Service Request Management
+                        </p>
 
-                    <div className="brand-description">
-                        <h2>Work smarter. Resolve faster.</h2>
+                        <div className="lb-divider" />
 
-                        <p>
+                        <h2 className="lb-headline">
+                            Work smarter. Resolve faster.
+                        </h2>
+
+                        <p className="lb-text">
                             Manage service requests, tasks, assignments,
                             and operations from one centralized platform.
                         </p>
+
                     </div>
 
                 </div>
@@ -109,7 +112,7 @@ const Login = () => {
                     </div>
 
                     {error && (
-                        <div className="login-error">
+                        <div className="login-error" role="alert">
                             {error}
                         </div>
                     )}

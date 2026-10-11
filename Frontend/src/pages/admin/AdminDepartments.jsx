@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FiPlus, FiEdit2, FiToggleLeft, FiToggleRight } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiToggleLeft, FiToggleRight, FiTrash2 } from "react-icons/fi";
 
 import api from "../../services/api";
 
@@ -10,6 +10,7 @@ const AdminDepartments = () => {
     const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [actionId, setActionId] = useState(null);
 
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
@@ -93,7 +94,9 @@ const AdminDepartments = () => {
     };
 
     const toggleStatus = async (department) => {
+        if (actionId) return;
         try {
+            setActionId(department._id);
             await api.patch(`/departments/${department._id}/status`, {
                 isActive: !department.isActive
             });
@@ -101,7 +104,28 @@ const AdminDepartments = () => {
             fetchDepartments();
 
         } catch (error) {
-            console.error("Failed to update status:", error);
+            setError(error.response?.data?.message || "Failed to update department status.");
+        } finally {
+            setActionId(null);
+        }
+    };
+
+    const removeDepartment = async (department) => {
+        if (actionId) return;
+        const confirmed = window.confirm(
+            `Remove department “${department.name}”? This permanently deletes it only when no users or historical requests reference it. Referenced departments are protected and must be deactivated instead.`
+        );
+        if (!confirmed) return;
+
+        try {
+            setActionId(department._id);
+            setError("");
+            await api.delete(`/departments/${department._id}`);
+            setDepartments((previous) => previous.filter((item) => item._id !== department._id));
+        } catch (error) {
+            setError(error.response?.data?.message || "Failed to remove department.");
+        } finally {
+            setActionId(null);
         }
     };
 
@@ -210,10 +234,19 @@ const AdminDepartments = () => {
                                         <button
                                             type="button"
                                             onClick={() => toggleStatus(department)}
+                                            disabled={actionId === department._id}
                                         >
                                             {department.isActive
                                                 ? <FiToggleRight />
                                                 : <FiToggleLeft />}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            title="Remove department"
+                                            onClick={() => removeDepartment(department)}
+                                            disabled={actionId === department._id}
+                                        >
+                                            <FiTrash2 />
                                         </button>
                                     </td>
                                 </tr>

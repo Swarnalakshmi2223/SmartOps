@@ -350,6 +350,7 @@ const StaffRequests = () => {
                                         View Details
                                     </button>
 
+
                                     {request.status ===
                                         "Assigned" && (
 

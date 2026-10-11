@@ -23,6 +23,45 @@ const isValidPhone = (phone) => (
     !phone || /^[+()\-\s\d]{7,20}$/.test(phone)
 );
 
+const addDepartmentDetails = async (staffMembers) => {
+    const departmentNames = [
+        ...new Set(
+            staffMembers
+                .map((staffMember) => staffMember.department)
+                .filter(Boolean)
+                .map((departmentName) => String(departmentName).trim())
+        )
+    ];
+
+    const departments = await Department.find({
+        name: { $in: departmentNames }
+    })
+        .select("name isActive")
+        .lean();
+
+    const departmentsByName = new Map(
+        departments.map((department) => [department.name.trim(), department])
+    );
+
+    return staffMembers.map((staffMember) => {
+        const staffObject = staffMember.toObject
+            ? staffMember.toObject()
+            : staffMember;
+        const normalizedDepartmentName = staffObject.department
+            ? String(staffObject.department).trim()
+            : "";
+        const department = departmentsByName.get(normalizedDepartmentName);
+
+        return {
+            ...staffObject,
+            departmentName: department?.name || normalizedDepartmentName || null,
+            departmentIsActive: Boolean(
+                department && department.isActive !== false
+            )
+        };
+    });
+};
+
 const getAllUsers = async (req, res) => {
     try{
         const users = await User.find().select("-password");
@@ -218,6 +257,25 @@ const updateUserStatus = async (req, res) => {
                 message: "user not found"
             });
         }
+
+        if (!isActive && user._id.toString() === req.user.id) {
+            return res.status(400).json({
+                message: "You cannot deactivate your own currently logged-in account"
+            });
+        }
+
+        if (!isActive && user.role === "admin" && user.isActive !== false) {
+            const activeAdminCount = await User.countDocuments({
+                role: "admin",
+                isActive: { $ne: false }
+            });
+
+            if (activeAdminCount <= 1) {
+                return res.status(400).json({
+                    message: "The last active administrator cannot be deactivated"
+                });
+            }
+        }
       
         user.isActive = isActive;
 
@@ -274,23 +332,44 @@ const deleteUser = async (req,res) => {
             });
         }
 
-        const deletedUser = {
-            name: user.name,
-            email: user.email,
-            role: user.role
-            };
+        if (user._id.toString() === req.user.id) {
+            return res.status(400).json({
+                message: "You cannot deactivate your own currently logged-in account"
+            });
+        }
 
-        await User.findByIdAndDelete(id);
+        if (user.role === "admin" && user.isActive !== false) {
+            const activeAdminCount = await User.countDocuments({
+                role: "admin",
+                isActive: { $ne: false }
+            });
+
+            if (activeAdminCount <= 1) {
+                return res.status(400).json({
+                    message: "The last active administrator cannot be deactivated"
+                });
+            }
+        }
+
+        user.isActive = false;
+        await user.save();
 
         await createAuditLog({
               user: req.user.id,
-              action: "DELETE_USER",
+              action: "DEACTIVATE_USER",
               module: "User Management",
-              description: `User ${deletedUser.name} was deleted`
+              description: `User ${user.name} was deactivated through the removal control`
           });
           
         res.status(200).json({
-            message: "User deleted successfully"
+            message: "User deactivated successfully",
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                isActive: user.isActive
+            }
         });
         
     }catch (error) {
@@ -304,9 +383,10 @@ const deleteUser = async (req,res) => {
 
 const getAllStaff = async (req, res) => {
     try {
-        const staff = await User.find({
+        const staffDocuments = await User.find({
             role: "staff"
         }).select("-password");
+        const staff = await addDepartmentDetails(staffDocuments);
 
         res.status(200).json({
             message: "Staff fetched successfully",
@@ -326,16 +406,18 @@ const getStaffById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const staff = await User.findOne({
+        const staffDocument = await User.findOne({
             _id: id,
             role: "staff"
         }).select("-password");
 
-        if (!staff) {
+        if (!staffDocument) {
             return res.status(404).json({
                 message: "Staff member not found"
             });
         }
+
+        const [staff] = await addDepartmentDetails([staffDocument]);
 
         res.status(200).json({
             message: "Staff fetched successfully",
@@ -550,9 +632,24 @@ const updateStaffStatus = async (req, res) => {
             });
         }
 
+        if (!isActive && staff._id.toString() === req.user.id) {
+            return res.status(400).json({
+                message: "You cannot deactivate your own currently logged-in account"
+            });
+        }
+
         staff.isActive = isActive;
 
         await staff.save();
+
+        await createAuditLog({
+            user: req.user.id,
+            action: isActive ? "ACTIVATE_STAFF" : "DEACTIVATE_STAFF",
+            module: "User Management",
+            description: isActive
+                ? `Staff member ${staff.name} was activated`
+                : `Staff member ${staff.name} was deactivated`
+        });
 
         const staffResponse = staff.toObject();
         delete staffResponse.password;

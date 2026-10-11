@@ -69,6 +69,50 @@
     overflow-y: auto;
 }
 
+.sidebar-group {
+    margin-bottom: 12px;
+}
+
+.sidebar-group-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px 8px;
+    border: none;
+    background: transparent;
+    color: #91a0aa;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-align: left;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.sidebar-group-toggle:hover,
+.sidebar-group-toggle.active {
+    color: #ffffff;
+}
+
+.sidebar-group-toggle svg {
+    font-size: 13px;
+    transition: transform 0.2s ease;
+}
+
+.sidebar-group-toggle svg.rotated {
+    transform: rotate(180deg);
+}
+
+.sidebar-group-items {
+    animation: sidebar-group-open 0.16s ease-out;
+}
+
+@keyframes sidebar-group-open {
+    from { opacity: 0; transform: translateY(-3px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .sidebar-section-title {
     margin: 0 10px 10px;
 
@@ -240,4 +284,63 @@
         padding: 0 16px;
     }
 
+}
+
+@media (max-width: 640px) {
+    .sidebar {
+        width: 76px;
+    }
+
+    .sidebar-brand {
+        justify-content: center;
+        padding: 0;
+    }
+
+    .sidebar-logo {
+        margin-right: 0;
+    }
+
+    .sidebar-brand-text,
+    .sidebar-group-toggle span,
+    .sidebar-link-label,
+    .sidebar-user-info,
+    .sidebar-logout span {
+        display: none;
+    }
+
+    .sidebar-navigation {
+        padding: 18px 8px;
+    }
+
+    .sidebar-group-toggle {
+        justify-content: center;
+        padding: 0 0 7px;
+    }
+
+    .sidebar-group-toggle svg {
+        display: block;
+    }
+
+    .sidebar-link {
+        justify-content: center;
+        padding: 0;
+    }
+
+    .sidebar-link-icon {
+        width: auto;
+    }
+
+    .sidebar-user {
+        justify-content: center;
+        padding: 9px 0;
+    }
+
+    .sidebar-user-avatar {
+        margin-right: 0;
+    }
+
+    .sidebar-logout {
+        justify-content: center;
+        padding: 0;
+    }
 }

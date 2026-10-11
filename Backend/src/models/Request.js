@@ -9,6 +9,16 @@ const requestSchema = new mongoose.Schema(
             index: true
         },
 
+        // Used by the client to make a retried request submission idempotent.
+        creationKey: {
+            type: String,
+            trim: true,
+            default: undefined,
+            unique: true,
+            sparse: true,
+            select: false
+        },
+
         title: {
             type: String,
             required: true,
@@ -50,6 +60,24 @@ const requestSchema = new mongoose.Schema(
                 "Closed"
             ],
             default: "Pending"
+        },
+
+        confirmationEmailSent: {
+            type: Boolean,
+            default: false,
+            select: false
+        },
+
+        confirmationEmailMessageId: {
+            type: String,
+            default: null,
+            select: false
+        },
+
+        confirmationEmailAttemptedAt: {
+            type: Date,
+            default: null,
+            select: false
         },
 
         // Request location
@@ -239,6 +267,23 @@ const requestSchema = new mongoose.Schema(
 
         attachment: {
             type: String,
+            default: null
+        },
+
+        attachmentOriginalName: {
+            type: String,
+            default: null,
+            trim: true
+        },
+
+        attachmentMimeType: {
+            type: String,
+            default: null,
+            trim: true
+        },
+
+        attachmentSize: {
+            type: Number,
             default: null
         },
 

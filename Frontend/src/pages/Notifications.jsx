@@ -145,6 +145,11 @@ const Notifications = () => {
             await markAsRead(notification._id);
         }
 
+        if (notification.link) {
+            navigate(notification.link);
+            return;
+        }
+
         if (notification.relatedRequest?._id) {
             navigate(
                 `/${user?.role || "user"}/requests/${notification.relatedRequest._id}`

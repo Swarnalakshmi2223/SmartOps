@@ -8,14 +8,17 @@ import {
 } from "react-icons/fi";
 
 import api from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 import useRealtimeRefresh from "../../hooks/useRealtimeRefresh";
 
 import "./AdminDashboard.css";
 
 const AdminDashboard = () => {
+    const { user } = useAuth();
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const displayName = user?.name?.trim() || "there";
 
     const fetchRequests = async () => {
         try {
@@ -89,7 +92,7 @@ const AdminDashboard = () => {
         <div className="admin-dashboard">
             <div className="admin-dashboard-welcome">
                 <div>
-                    <h2>Welcome back</h2>
+                    <h2>Welcome back, {displayName}! 👋</h2>
                     <p>Here&apos;s an overview of your SmartOps operations.</p>
                 </div>
             </div>

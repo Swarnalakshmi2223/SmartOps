@@ -53,8 +53,8 @@
     width: 42px;
     height: 42px;
     border-radius: 9px;
-    background: #eef2f4;
-    color: #496273;
+    background: #dbeafe;
+    color: var(--smartops-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -62,13 +62,18 @@
 }
 
 .admin-analytics-stat-icon.green {
-    background: #e8f0ed;
-    color: #4f6f63;
+    background: #ccfbf1;
+    color: var(--smartops-teal);
 }
 
-.admin-analytics-stat-icon.red {
-    background: #f1e9e7;
-    color: #8a5b53;
+.admin-analytics-stat-icon.purple {
+    background: #ede9fe;
+    color: var(--smartops-purple);
+}
+
+.admin-analytics-stat-icon.orange {
+    background: #ffedd5;
+    color: var(--smartops-warning);
 }
 
 .admin-analytics-stat-card span {

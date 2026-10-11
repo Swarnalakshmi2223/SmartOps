@@ -7,10 +7,14 @@ import {
 } from "react-icons/fi";
 
 import api from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 
 import "./StaffDashboard.css";
 
 const StaffDashboard = () => {
+
+    const { user } = useAuth();
+    const displayName = user?.name?.trim() || "there";
 
     const [requests, setRequests] = useState([]);
 
@@ -142,7 +146,7 @@ const StaffDashboard = () => {
                 <div>
 
                     <h2>
-                        Welcome back
+                        Welcome back, {displayName}! 👋
                     </h2>
 
                     <p>

@@ -9,6 +9,8 @@ body,
     margin: 0;
 }
 
+
+
 body {
     font-family:
         Inter,
@@ -16,12 +18,20 @@ body {
         BlinkMacSystemFont,
         "Segoe UI",
         sans-serif;
-    background: #f4f6f8;
+
+    background-color: #f4f6f8;
+    background-image: url("/smartops-background.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
     color: #263238;
     line-height: 1.45;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
 }
+
 
 button,
 input,

@@ -100,7 +100,12 @@ const Navbar = ({ title, subtitle }) => {
 
                 <div className="navbar-divider"></div>
 
-                <div className="navbar-user">
+                <button
+                    type="button"
+                    className="navbar-user"
+                    aria-label="Open profile settings"
+                    onClick={() => navigate(`/${user?.role || "user"}/settings`)}
+                >
 
                     <div className="navbar-avatar">
                         {user?.name?.charAt(0).toUpperCase()}
@@ -120,7 +125,7 @@ const Navbar = ({ title, subtitle }) => {
 
                     <FiChevronDown className="navbar-chevron" />
 
-                </div>
+                </button>
 
             </div>
 

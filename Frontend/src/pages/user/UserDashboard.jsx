@@ -7,11 +7,15 @@ import {
 } from "react-icons/fi";
 
 import api from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 import useRealtimeRefresh from "../../hooks/useRealtimeRefresh";
 
 import "./UserDashboard.css";
 
 const UserDashboard = () => {
+
+    const { user } = useAuth();
+    const displayName = user?.name?.trim() || "there";
 
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -135,7 +139,7 @@ const UserDashboard = () => {
             <div className="dashboard-welcome">
 
                 <div>
-                    <h2>Welcome back</h2>
+                    <h2>Welcome back, {displayName}! 👋</h2>
 
                     <p>
                         Here's an overview of your service requests.

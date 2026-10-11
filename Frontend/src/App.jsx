@@ -15,6 +15,7 @@ import StaffTasks from "./pages/staff/StaffTasks";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminRequests from "./pages/admin/AdminRequests";
 import AdminStaff from "./pages/admin/AdminStaff";
+import AdminUsers from "./pages/admin/AdminUsers";
 import AdminTasks from "./pages/admin/AdminTasks";
 import AdminDepartments from "./pages/admin/AdminDepartments";
 import AdminCategories from "./pages/admin/AdminCategories";
@@ -30,6 +31,7 @@ import Settings from "./pages/shared/Settings";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
+import "./theme.css";
 
 import { useAuth } from "./context/AuthContext";
 
@@ -161,6 +163,10 @@ function App() {
                     <Route
                         path="staff"
                         element={<AdminStaff />}
+                    />
+                    <Route
+                        path="users"
+                        element={<AdminUsers />}
                     />
                     <Route
                         path="tasks"

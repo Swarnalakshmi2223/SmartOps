@@ -1,0 +1,455 @@
+:root {
+    --smartops-primary: #2563eb;
+    --smartops-primary-dark: #1d4ed8;
+    --smartops-navy: #16365c;
+    --smartops-blue-soft: #eff6ff;
+    --smartops-surface: #ffffff;
+    --smartops-background: #eaf7fa;
+    --smartops-text: #172b4d;
+    --smartops-muted: #64748b;
+    --smartops-border: #dce7f5;
+    --smartops-success: #16a34a;
+    --smartops-warning: #ea580c;
+    --smartops-danger: #dc2626;
+    --smartops-purple: #7c3aed;
+    --smartops-teal: #0d9488;
+    --smartops-shadow: 0 10px 28px rgba(30, 53, 87, 0.08);
+}
+
+body {
+    background-color: var(--smartops-background);
+    color: var(--smartops-text);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline-color: rgba(37, 99, 235, 0.42);
+}
+
+.dashboard-layout,
+.dashboard-main {
+    background: transparent;
+}
+
+.sidebar {
+    background: var(--smartops-navy);
+    border-right-color: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-link.active {
+    background: var(--smartops-primary);
+    box-shadow: inset 3px 0 0 #bfdbfe;
+}
+
+.sidebar-link:hover {
+    background: rgba(96, 165, 250, 0.16);
+    color: #ffffff;
+}
+
+.dashboard-content {
+    padding: 30px 34px;
+}
+
+.navbar {
+    height: 80px;
+    padding: 0 34px;
+    background: rgba(255, 255, 255, 0.96);
+    border-bottom-color: var(--smartops-border);
+    box-shadow: 0 4px 16px rgba(30, 53, 87, 0.06);
+}
+
+.navbar-page-info h1,
+.admin-dashboard-welcome h2,
+.staff-dashboard-welcome h2,
+.dashboard-welcome h2,
+.admin-staff-header h2,
+.admin-departments-header h2,
+.admin-categories-header h2 {
+    color: var(--smartops-text);
+}
+
+.navbar-page-info p,
+.admin-dashboard-welcome p,
+.staff-dashboard-welcome p,
+.dashboard-welcome p,
+.admin-staff-header p,
+.admin-departments-header p,
+.admin-categories-header p {
+    color: var(--smartops-muted);
+}
+
+.navbar-notification:hover,
+.navbar-user:hover {
+    background: var(--smartops-blue-soft);
+    color: var(--smartops-primary);
+}
+
+.navbar-user {
+    border: 0;
+    padding: 4px 6px;
+    border-radius: 10px;
+    background: transparent;
+    font: inherit;
+}
+
+.notification-count {
+    background: var(--smartops-danger);
+}
+
+.navbar-avatar,
+.sidebar-user-avatar {
+    background: #dbeafe;
+    color: var(--smartops-primary-dark);
+}
+
+.admin-stat-card,
+.stat-card,
+.staff-stat-card,
+.requests-section,
+.staff-requests-section,
+.admin-requests-section,
+.admin-requests-card,
+.admin-staff-card,
+.settings-card,
+.create-request-card,
+.request-main-card,
+.request-timeline-card,
+.request-comments-card,
+.request-feedback-card,
+.notifications-list,
+.admin-analytics-section,
+.admin-analytics-stat-card,
+.admin-table-wrapper {
+    background: var(--smartops-surface);
+    border-color: var(--smartops-border);
+    box-shadow: var(--smartops-shadow);
+}
+
+.admin-stat-icon,
+.stat-icon,
+.staff-stat-icon {
+    background: #dbeafe;
+    color: var(--smartops-primary);
+}
+
+.admin-stat-card:nth-child(2) .admin-stat-icon,
+.stats-grid .stat-card:nth-child(2) .stat-icon,
+.staff-stats-grid .staff-stat-card:nth-child(2) .staff-stat-icon {
+    background: #ccfbf1;
+    color: var(--smartops-teal);
+}
+
+.admin-stat-card:nth-child(3) .admin-stat-icon,
+.stats-grid .stat-card:nth-child(3) .stat-icon,
+.staff-stats-grid .staff-stat-card:nth-child(3) .staff-stat-icon {
+    background: #ede9fe;
+    color: var(--smartops-purple);
+}
+
+.admin-stat-card:nth-child(4) .admin-stat-icon,
+.stats-grid .stat-card:nth-child(4) .stat-icon,
+.staff-stats-grid .staff-stat-card:nth-child(4) .staff-stat-icon {
+    background: #ffedd5;
+    color: var(--smartops-warning);
+}
+
+.admin-stat-card:nth-child(5) .admin-stat-icon {
+    background: #dcfce7;
+    color: var(--smartops-success);
+}
+
+table th,
+.admin-requests-table th,
+.requests-table th,
+.staff-requests-table th,
+.admin-tasks-table th,
+.admin-staff-table th,
+.admin-departments-table th,
+.admin-categories-table th {
+    background: #f8fbff;
+    color: var(--smartops-muted);
+    border-bottom-color: var(--smartops-border);
+}
+
+table td,
+.admin-requests-table td,
+.requests-table td,
+.staff-requests-table td,
+.admin-tasks-table td,
+.admin-staff-table td,
+.admin-departments-table td,
+.admin-categories-table td {
+    border-top-color: #edf3fb;
+    color: #334e68;
+}
+
+table tbody tr:hover,
+.admin-requests-table tbody tr:hover,
+.requests-table tbody tr:hover,
+.staff-requests-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+input,
+textarea,
+select {
+    border-color: var(--smartops-border);
+    color: var(--smartops-text);
+    background: #ffffff;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: var(--smartops-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+button[class*="primary"],
+button[class*="save"],
+button[class*="add"],
+button[class*="submit"],
+.login-button,
+.register-submit-button,
+.create-request-button,
+.admin-add-staff-button,
+.admin-departments-add-btn,
+.admin-categories-add-btn {
+    background: var(--smartops-navy);
+    color: #ffffff;
+}
+
+button[class*="primary"]:hover,
+button[class*="save"]:hover,
+button[class*="add"]:hover,
+button[class*="submit"]:hover,
+.login-button:hover,
+.register-submit-button:hover,
+.create-request-button:hover,
+.admin-add-staff-button:hover,
+.admin-departments-add-btn:hover,
+.admin-categories-add-btn:hover {
+    background: var(--smartops-primary);
+}
+
+.status-active,
+.staff-active,
+.status-resolved,
+.admin-status-resolved {
+    color: var(--smartops-success);
+}
+
+.status-inactive,
+.staff-inactive {
+    color: var(--smartops-danger);
+}
+
+@media (max-width: 900px) {
+    .dashboard-content {
+        padding: 24px 22px;
+    }
+}
+
+@media (max-width: 650px) {
+    .dashboard-content {
+        padding: 20px 16px;
+    }
+
+    .navbar {
+        padding: 0 18px;
+    }
+}
+
+/* Keep the shared theme authoritative over legacy page-level colour rules. */
+html body .sidebar {
+    background: var(--smartops-navy);
+    border-right-color: rgba(255, 255, 255, 0.08);
+}
+
+html body .sidebar-link.active {
+    background: var(--smartops-primary);
+    box-shadow: inset 3px 0 0 #bfdbfe;
+}
+
+html body .navbar {
+    height: 80px;
+    background: rgba(255, 255, 255, 0.96);
+    border-bottom-color: var(--smartops-border);
+    box-shadow: 0 4px 16px rgba(30, 53, 87, 0.06);
+}
+
+html body .dashboard-layout,
+html body .dashboard-main {
+    background: transparent;
+}
+
+html body .admin-stat-card,
+html body .stat-card,
+html body .staff-stat-card,
+html body .requests-section,
+html body .staff-requests-section,
+html body .admin-requests-section,
+html body .admin-staff-card,
+html body .settings-card,
+html body .create-request-card,
+html body .request-main-card,
+html body .request-timeline-card,
+html body .request-comments-card,
+html body .request-feedback-card,
+html body .notifications-list,
+html body .admin-analytics-section,
+html body .admin-analytics-stat-card,
+html body .admin-table-wrapper {
+    background: var(--smartops-surface);
+    border-color: var(--smartops-border);
+    box-shadow: var(--smartops-shadow);
+}
+
+html body table th {
+    background: #f8fbff;
+    color: var(--smartops-muted);
+}
+
+html body table td {
+    border-top-color: #edf3fb;
+    color: #334e68;
+}
+
+html body input,
+html body textarea,
+html body select {
+    border-color: var(--smartops-border);
+    color: var(--smartops-text);
+}
+
+html body button[class*="primary"],
+html body button[class*="save"],
+html body button[class*="add"],
+html body button[class*="submit"],
+html body .login-button,
+html body .register-submit-button,
+html body .create-request-button,
+html body .admin-add-staff-button,
+html body .admin-departments-add-btn,
+html body .admin-categories-add-btn {
+    background: var(--smartops-navy);
+    color: #ffffff;
+}
+
+html body .admin-add-staff-button:hover,
+html body .admin-departments-add-btn:hover,
+html body .admin-categories-add-btn:hover {
+    background: var(--smartops-primary);
+}
+
+/* Shared surface, table, and responsive layout system. */
+html body .dashboard-main,
+html body .dashboard-content {
+    min-width: 0;
+}
+
+html body [class$="-card"] {
+    border: 1px solid var(--smartops-border);
+    border-radius: 12px;
+    background: var(--smartops-surface);
+    box-shadow: 0 8px 24px rgba(30, 53, 87, 0.06);
+}
+
+html body [class$="-card"] h2,
+html body [class$="-card"] h3,
+html body [class$="-card"] h4 {
+    color: var(--smartops-text);
+}
+
+html body [class$="-card"] p,
+html body [class$="-card"] span,
+html body [class$="-card"] label {
+    color: var(--smartops-muted);
+}
+
+html body .admin-stat-card,
+html body .stat-card,
+html body .staff-stat-card,
+html body .admin-analytics-stat-card {
+    min-height: 112px;
+    align-items: center;
+}
+
+html body .admin-stat-card:hover,
+html body .stat-card:hover,
+html body .staff-stat-card:hover,
+html body .admin-analytics-stat-card:hover {
+    border-color: #c4d8f0;
+    box-shadow: 0 12px 28px rgba(30, 53, 87, 0.1);
+    transform: translateY(-2px);
+}
+
+html body .admin-stats-grid,
+html body .stats-grid,
+html body .staff-stats-grid,
+html body .admin-analytics-stats-grid {
+    align-items: stretch;
+}
+
+html body .admin-table-wrapper,
+html body .admin-request-table-wrapper,
+html body .admin-staff-table-wrapper,
+html body .admin-task-table-wrapper,
+html body .requests-table-wrapper,
+html body .staff-table-wrapper,
+html body .table-wrapper {
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--smartops-border);
+    border-radius: 10px;
+    background: var(--smartops-surface);
+}
+
+html body .dashboard-content table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+html body .dashboard-content table th,
+html body .dashboard-content table td {
+    padding: 14px 16px;
+    vertical-align: middle;
+}
+
+html body .dashboard-content table th {
+    background: #f4f9ff;
+    color: var(--smartops-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+html body .dashboard-content table td {
+    border-top: 1px solid #edf3fb;
+    color: var(--smartops-text);
+    font-size: 12px;
+}
+
+html body .dashboard-content table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+html body .dashboard-content table tbody tr:hover {
+    background: #f8fbff;
+}
+
+@media (max-width: 650px) {
+    html body .dashboard-content {
+        width: 100%;
+        padding: 20px 16px;
+    }
+
+    html body .dashboard-content table {
+        min-width: 640px;
+    }
+}

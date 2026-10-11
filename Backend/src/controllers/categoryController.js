@@ -1,4 +1,6 @@
 const Category = require("../models/Category");
+const Request = require("../models/Request");
+const createAuditLog = require("../utils/auditLogger");
 
 // Create Category
 const createCategory = async (req, res) => {
@@ -186,6 +188,15 @@ const updateCategoryStatus = async (req, res) => {
 
         await category.save();
 
+        await createAuditLog({
+            user: req.user.id,
+            action: isActive ? "ACTIVATE_CATEGORY" : "DEACTIVATE_CATEGORY",
+            module: "Category Management",
+            description: isActive
+                ? `Category ${category.name} was activated`
+                : `Category ${category.name} was deactivated`
+        });
+
         res.status(200).json({
             message: isActive
                 ? "Category activated successfully"
@@ -201,6 +212,41 @@ const updateCategoryStatus = async (req, res) => {
     }
 };
 
+const deleteCategory = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const category = await Category.findById(id);
+
+        if (!category) {
+            return res.status(404).json({ message: "Category not found" });
+        }
+
+        const requestCount = await Request.countDocuments({ category: category.name });
+        if (requestCount > 0) {
+            return res.status(409).json({
+                message: `Category cannot be permanently deleted because it is referenced by ${requestCount} historical request${requestCount === 1 ? "" : "s"}. Deactivate it instead.`
+            });
+        }
+
+        await Category.deleteOne({ _id: category._id });
+        await createAuditLog({
+            user: req.user.id,
+            action: "DELETE_CATEGORY",
+            module: "Category Management",
+            description: `Category ${category.name} was permanently deleted`
+        });
+
+        return res.status(200).json({
+            message: "Category deleted successfully",
+            categoryId: category._id
+        });
+    } catch (error) {
+        return res.status(500).json({
+            message: "Failed to delete category",
+            error: error.message
+        });
+    }
+};
 
 module.exports = {
     createCategory,
@@ -208,5 +254,6 @@ module.exports = {
     getCategoryById,
     getActiveCategories,
     updateCategory,
-    updateCategoryStatus
+    updateCategoryStatus,
+    deleteCategory
 };

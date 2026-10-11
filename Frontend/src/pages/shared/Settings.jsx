@@ -95,95 +95,111 @@ const Settings = () => {
     };
 
     return (
-        <div className="settings-page">
+        <div className="stg-page">
 
-            <div className="settings-header">
+            <div className="stg-header">
                 <h2>Settings</h2>
                 <p>Manage your profile and account security.</p>
             </div>
 
-            <div className="settings-grid">
+            <div className="stg-grid">
 
-                <form className="settings-card" onSubmit={handleProfileSubmit}>
-                    <div className="settings-card-title">
+                {/* ---------- Profile ---------- */}
+                <form className="stg-card" onSubmit={handleProfileSubmit}>
+                    <div className="stg-card__title">
                         <FiUser />
-                        <h3>Profile</h3>
+                        <span>Profile</span>
                     </div>
 
                     {profileMessage && (
-                        <div className="settings-success">{profileMessage}</div>
+                        <div className="stg-success">{profileMessage}</div>
                     )}
                     {profileError && (
-                        <div className="settings-error">{profileError}</div>
+                        <div className="stg-error">{profileError}</div>
                     )}
 
-                    <label>Full name</label>
+                    <label className="stg-label">Full name</label>
                     <input
+                        className="stg-input"
                         type="text"
                         name="name"
                         value={profileData.name}
                         onChange={handleProfileChange}
                     />
 
-                    <label>Email address</label>
+                    <label className="stg-label">Email address</label>
                     <input
+                        className="stg-input"
                         type="email"
                         name="email"
                         value={profileData.email}
                         onChange={handleProfileChange}
                     />
 
-                    <label className="settings-readonly-label">Role</label>
+                    <label className="stg-label stg-label--readonly">Role</label>
                     <input
+                        className="stg-input"
                         type="text"
                         value={user?.role || ""}
                         disabled
                     />
 
-                    <button type="submit" disabled={profileSaving}>
+                    <button
+                        className="stg-button"
+                        type="submit"
+                        disabled={profileSaving}
+                    >
                         <FiSave />
                         {profileSaving ? "Saving..." : "Save profile"}
                     </button>
                 </form>
 
-                <form className="settings-card" onSubmit={handlePasswordSubmit}>
-                    <div className="settings-card-title">
+                {/* ---------- Change password ---------- */}
+                <form className="stg-card" onSubmit={handlePasswordSubmit}>
+                    <div className="stg-card__title">
                         <FiLock />
-                        <h3>Change password</h3>
+                        <span>Change password</span>
                     </div>
 
                     {passwordMessage && (
-                        <div className="settings-success">{passwordMessage}</div>
+                        <div className="stg-success">{passwordMessage}</div>
                     )}
                     {passwordError && (
-                        <div className="settings-error">{passwordError}</div>
+                        <div className="stg-error">{passwordError}</div>
                     )}
 
-                    <label>Current password</label>
+                    <label className="stg-label">Current password</label>
                     <input
+                        className="stg-input"
                         type="password"
                         name="currentPassword"
                         value={passwordData.currentPassword}
                         onChange={handlePasswordChange}
                     />
 
-                    <label>New password</label>
+                    <label className="stg-label">New password</label>
                     <input
+                        className="stg-input"
                         type="password"
                         name="newPassword"
                         value={passwordData.newPassword}
                         onChange={handlePasswordChange}
                     />
 
-                    <label>Confirm new password</label>
+                    <label className="stg-label">Confirm new password</label>
                     <input
+                        className="stg-input"
                         type="password"
                         name="confirmPassword"
                         value={passwordData.confirmPassword}
                         onChange={handlePasswordChange}
                     />
 
-                    <button type="submit" disabled={passwordSaving}>
+                    <button
+                        className="stg-button"
+                        type="submit"
+                        disabled={passwordSaving}
+                    >
                         <FiSave />
                         {passwordSaving ? "Saving..." : "Change password"}
                     </button>

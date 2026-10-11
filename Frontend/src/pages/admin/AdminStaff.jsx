@@ -34,6 +34,7 @@ const AdminStaff = () => {
     });
 
     const [saving, setSaving] = useState(false);
+    const [actionId, setActionId] = useState(null);
 
     const fetchStaff = async () => {
 
@@ -196,7 +197,17 @@ const AdminStaff = () => {
 
         const newStatus = !member.isActive;
 
+        if (actionId) return;
+
+        if (member.isActive && !window.confirm(
+            `Deactivate ${member.name}? Their account will be disabled, while requests, tasks, comments, notifications, and audit history are preserved.`
+        )) {
+            return;
+        }
+
         try {
+
+            setActionId(member._id);
 
             await api.patch(
                 `/users/staff/${member._id}/status`,
@@ -213,6 +224,8 @@ const AdminStaff = () => {
                 error.response?.data?.message ||
                 "Failed to update staff status."
             );
+        } finally {
+            setActionId(null);
         }
     };
 
@@ -244,7 +257,8 @@ const AdminStaff = () => {
 
                 <button
                     type="button"
-                    className="admin-add-staff-button"
+                    className="admin-add-staff-button" 
+                    
                     onClick={openAddModal}
                 >
                     <FiPlus />
@@ -406,9 +420,10 @@ const AdminStaff = () => {
                                                         member
                                                     )
                                                 }
+                                                disabled={actionId === member._id}
                                                 title={
                                                     member.isActive
-                                                        ? "Deactivate"
+                                                        ? "Remove staff account"
                                                         : "Activate"
                                                 }
                                             >
@@ -418,6 +433,7 @@ const AdminStaff = () => {
                                                     : <FiUserCheck />}
 
                                             </button>
+
 
                                         </div>
 

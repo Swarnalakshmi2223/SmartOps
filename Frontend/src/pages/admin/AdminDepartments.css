@@ -30,7 +30,7 @@
     padding: 0 14px;
     border: none;
     border-radius: 7px;
-    background: #344f62;
+    background: var(--smartops-navy);
     color: #ffffff;
     font-size: 12px;
     font-weight: 600;
@@ -38,7 +38,7 @@
 }
 
 .admin-departments-add-btn:hover {
-    background: #293f50;
+    background: var(--smartops-primary);
 }
 
 .admin-departments-error {

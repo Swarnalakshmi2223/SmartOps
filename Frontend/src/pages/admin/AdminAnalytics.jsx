@@ -74,7 +74,7 @@ const AdminAnalytics = () => {
                     <div className="admin-analytics-stats-grid">
 
                         <div className="admin-analytics-stat-card">
-                            <div className="admin-analytics-stat-icon">
+                            <div className="admin-analytics-stat-icon blue">
                                 <FiFileText />
                             </div>
                             <div>
@@ -94,7 +94,7 @@ const AdminAnalytics = () => {
                         </div>
 
                         <div className="admin-analytics-stat-card">
-                            <div className="admin-analytics-stat-icon">
+                            <div className="admin-analytics-stat-icon purple">
                                 <FiUsers />
                             </div>
                             <div>
@@ -104,7 +104,7 @@ const AdminAnalytics = () => {
                         </div>
 
                         <div className="admin-analytics-stat-card">
-                            <div className="admin-analytics-stat-icon red">
+                            <div className="admin-analytics-stat-icon orange">
                                 <FiTrendingUp />
                             </div>
                             <div>

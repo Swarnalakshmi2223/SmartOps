@@ -1,4 +1,7 @@
 const Department = require("../models/Department");
+const User = require("../models/User");
+const Request = require("../models/Request");
+const createAuditLog = require("../utils/auditLogger");
 
 // Create Department
 const createDepartment = async (req, res) => {
@@ -179,6 +182,15 @@ const updateDepartmentStatus = async (req, res) => {
 
         await department.save();
 
+        await createAuditLog({
+            user: req.user.id,
+            action: isActive ? "ACTIVATE_DEPARTMENT" : "DEACTIVATE_DEPARTMENT",
+            module: "Department Management",
+            description: isActive
+                ? `Department ${department.name} was activated`
+                : `Department ${department.name} was deactivated`
+        });
+
         res.status(200).json({
             message: isActive
                 ? "Department activated successfully"
@@ -194,6 +206,45 @@ const updateDepartmentStatus = async (req, res) => {
     }
 };
 
+const deleteDepartment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const department = await Department.findById(id);
+
+        if (!department) {
+            return res.status(404).json({ message: "Department not found" });
+        }
+
+        const [requestCount, userCount] = await Promise.all([
+            Request.countDocuments({ department: department.name }),
+            User.countDocuments({ department: department.name })
+        ]);
+
+        if (requestCount > 0 || userCount > 0) {
+            return res.status(409).json({
+                message: `Department cannot be permanently deleted because it is referenced by ${requestCount} historical request${requestCount === 1 ? "" : "s"}${userCount ? ` and ${userCount} user account${userCount === 1 ? "" : "s"}` : ""}. Deactivate it instead.`
+            });
+        }
+
+        await Department.deleteOne({ _id: department._id });
+        await createAuditLog({
+            user: req.user.id,
+            action: "DELETE_DEPARTMENT",
+            module: "Department Management",
+            description: `Department ${department.name} was permanently deleted`
+        });
+
+        return res.status(200).json({
+            message: "Department deleted successfully",
+            departmentId: department._id
+        });
+    } catch (error) {
+        return res.status(500).json({
+            message: "Failed to delete department",
+            error: error.message
+        });
+    }
+};
 
 module.exports = {
     createDepartment,
@@ -201,5 +252,6 @@ module.exports = {
     getActiveDepartments,
     getDepartmentById,
     updateDepartment,
-    updateDepartmentStatus
+    updateDepartmentStatus,
+    deleteDepartment
 };

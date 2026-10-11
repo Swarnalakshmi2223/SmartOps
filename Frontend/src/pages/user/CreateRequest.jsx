@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FiArrowLeft, FiSend, FiZap } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
@@ -45,7 +45,9 @@ const CreateRequest = () => {
     // --------------------------------------------------
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
     const [attachment, setAttachment] = useState(null);
+    const submissionKeyRef = useRef(null);
 
     // --------------------------------------------------
     // Category states
@@ -353,6 +355,7 @@ const CreateRequest = () => {
         event.preventDefault();
 
         setError("");
+        setSuccess("");
         setAiMessage("");
 
         // Validate title
@@ -376,6 +379,11 @@ const CreateRequest = () => {
         try {
             setLoading(true);
 
+            if (!submissionKeyRef.current) {
+                submissionKeyRef.current = globalThis.crypto?.randomUUID?.() ||
+                    `request-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+            }
+
             const requestFields = {
                 title: formData.title.trim(),
                 description: formData.description.trim(),
@@ -394,16 +402,25 @@ const CreateRequest = () => {
 
                 multipartData.append("attachment", attachment);
 
-                await api.post("/requests", multipartData, {
+                const response = await api.post("/requests", multipartData, {
                     headers: {
-                        "Content-Type": "multipart/form-data"
+                        "Content-Type": "multipart/form-data",
+                        "X-Idempotency-Key": submissionKeyRef.current
                     }
                 });
+
+                setSuccess(response.data.message);
             } else {
-                await api.post("/requests", requestFields);
+                const response = await api.post("/requests", requestFields, {
+                    headers: {
+                        "X-Idempotency-Key": submissionKeyRef.current
+                    }
+                });
+
+                setSuccess(response.data.message);
             }
 
-            navigate("/user/requests");
+            window.setTimeout(() => navigate("/user/requests"), 1800);
 
         } catch (error) {
             console.error(
@@ -484,6 +501,12 @@ const CreateRequest = () => {
                     {error && (
                         <div className="form-error">
                             {error}
+                        </div>
+                    )}
+
+                    {success && (
+                        <div className="form-success" role="status">
+                            {success}
                         </div>
                     )}
 

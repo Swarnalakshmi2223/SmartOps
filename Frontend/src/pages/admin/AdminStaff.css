@@ -35,17 +35,20 @@
     border: none;
     border-radius: 7px;
 
-    background: #344f62;
+    background: var(--smartops-navy);
     color: #ffffff;
 
     font-size: 11px;
     font-weight: 600;
 
     cursor: pointer;
+
+    transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
-.admin-add-staff-button:hover {
-    background: #293f50;
+.admin-add-staff-button:hover:not(:disabled) {
+    background: var(--smartops-primary);
+    box-shadow: 0 8px 18px rgba(22, 54, 92, 0.18);
 }
 
 .admin-staff-card {
