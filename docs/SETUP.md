@@ -42,6 +42,8 @@ MAIL_SERVICE=gmail
 MAIL_USER=your-sender@gmail.com
 MAIL_PASSWORD=your-gmail-app-password
 MAIL_FROM=your-sender@gmail.com
+# Use true for implicit TLS (typically port 465) or false for STARTTLS (typically port 587).
+MAIL_SECURE=true
 ```
 
 `MONGO_URI` may be replaced with the project's MongoDB Atlas URI. `MAIL_*`
