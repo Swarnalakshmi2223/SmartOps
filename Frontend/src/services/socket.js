@@ -34,7 +34,9 @@ const connect = (token) => {
 
     socket = io(socketUrl, {
         auth: { token },
-        transports: ["websocket", "polling"]
+        // Vercel Functions support Socket.IO over WebSocket transport.
+        // Polling is not supported by this deployment path.
+        transports: ["websocket"]
     });
 
     socket.on("connect", () => {

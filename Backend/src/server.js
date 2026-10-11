@@ -32,14 +32,11 @@ const frontendOrigin = process.env.FRONTEND_ORIGIN || (
 );
 
 const app = express();
-const isVercel = Boolean(process.env.VERCEL);
-const httpServer = isVercel ? null : http.createServer(app);
+const httpServer = http.createServer(app);
 
-// Vercel's Express service handles HTTP requests as functions. Socket.IO
-// requires a persistent server, so it remains enabled for local deployments.
-if (httpServer) {
-    initializeSocket(httpServer, frontendOrigin);
-}
+// Export the HTTP server so Vercel can handle Socket.IO WebSocket upgrades.
+// Vercel closes connections at the function duration limit; clients reconnect.
+initializeSocket(httpServer, frontendOrigin);
 
 connectDB();
 
@@ -103,7 +100,7 @@ app.use((err, req, res, next) => {
     });
 });
 
-if (httpServer) {
+if (!process.env.VERCEL) {
     const PORT = process.env.PORT || 5000;
 
     httpServer.listen(PORT, () => {
@@ -111,4 +108,4 @@ if (httpServer) {
     });
 }
 
-module.exports = app;
+module.exports = httpServer;
