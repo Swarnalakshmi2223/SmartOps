@@ -357,7 +357,6 @@ acceptance.
 ## Additional documentation
 
 - [Complete project documentation](docs/PROJECT_DOCUMENTATION.md)
-- [Viva preparation guide](docs/VIVA_PREPARATION.md)
 - [Setup guide](docs/SETUP.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Workflows](docs/WORKFLOWS.md)
