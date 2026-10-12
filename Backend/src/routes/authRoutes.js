@@ -8,15 +8,23 @@ const {
 
 const router = express.Router();
 
-const authRateLimit = rateLimit({
+const loginRateLimit = rateLimit({
     windowMs: 15 * 60 * 1000,
     limit: 10,
     standardHeaders: true,
     legacyHeaders: false,
-    message: { message: "Too many authentication attempts. Please try again later." }
+    message: { message: "Too many login attempts. Please try again later." }
 });
 
-router.post("/register", authRateLimit, registerUser);
-router.post("/login", authRateLimit, loginUser);
+const registerRateLimit = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    limit: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: "Too many registration attempts. Please try again later." }
+});
+
+router.post("/register", registerRateLimit, registerUser);
+router.post("/login", loginRateLimit, loginUser);
 
 module.exports = router;

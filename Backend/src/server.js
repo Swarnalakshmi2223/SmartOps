@@ -33,6 +33,8 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
 const app = express();
 const httpServer = http.createServer(app);
 
+app.set("trust proxy", 1);
+
 // 3. Configure CORS for local development
 const normalizeOrigin = (origin) => origin.replace(/\/$/, "");
 
