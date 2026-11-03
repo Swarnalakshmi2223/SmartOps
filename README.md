@@ -20,6 +20,7 @@ and review work, and staff members process assigned requests and tasks.
 - [Data design](#data-design)
 - [Project structure](#project-structure)
 - [Setup](#setup)
+- [Deployment](#deployment)
 - [API reference](#api-reference)
 - [Testing](#testing)
 - [Security](#security)
@@ -38,6 +39,12 @@ The request is stored in MongoDB before dependent notification and email
 operations are attempted. MongoDB remains the source of truth. Authenticated
 Socket.IO events make connected screens update quickly, while the frontend
 reloads authoritative records through REST APIs.
+
+## Deployment
+
+The SmartOps AWS deployment is available at
+[http://16.170.189.58/login](http://16.170.189.58/login). The link is
+reachable when the EC2 instance associated with this Elastic IP is running.
 
 ## Key features
 
