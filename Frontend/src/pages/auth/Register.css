@@ -4,9 +4,7 @@
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background:
-        linear-gradient(rgba(234, 247, 250, 0.9), rgba(234, 247, 250, 0.9)),
-        url("/smartops-background.png") center / cover fixed;
+    background: linear-gradient(#eaf7fa, #eaf7fa);
 }
 
 .register-container {
